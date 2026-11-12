@@ -1,7 +1,8 @@
 # Architecture
 
 Ce document explique comment le code est organisé et pourquoi. Il s'adresse à un développeur
-qui reprend le projet ou qui veut le relire.
+qui reprend le projet ou qui veut le relire. Le détail des algorithmes est dans
+[algorithmes.md](algorithmes.md).
 
 ## Vue d'ensemble
 

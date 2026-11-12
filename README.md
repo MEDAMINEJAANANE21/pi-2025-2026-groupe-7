@@ -39,12 +39,20 @@ et celles dont la solution est retenue.
 
 <table>
   <tr>
-    <td><img src="docs/resources/captures/solution.png" alt="Éditeur de solution avec carte et tournées"></td>
-    <td><img src="docs/resources/captures/feuille-de-route.png" alt="Feuille de route imprimable"></td>
+    <td><img src="docs/resources/captures/solution.png" alt="Éditeur de solution avec carte, tournées et coûts"></td>
+    <td><img src="docs/resources/captures/feuille-de-route.png" alt="Feuille de route imprimable d'un chauffeur"></td>
   </tr>
   <tr>
-    <td align="center">Éditeur de solution</td>
+    <td align="center">Éditeur de solution : tournées, affectation et coûts</td>
     <td align="center">Feuille de route du chauffeur</td>
+  </tr>
+  <tr>
+    <td><img src="docs/resources/captures/accueil.png" alt="Page d'accueil de l'application"></td>
+    <td><img src="docs/resources/captures/equipe.png" alt="Fiches des chauffeurs et des véhicules"></td>
+  </tr>
+  <tr>
+    <td align="center">Page d'accueil</td>
+    <td align="center">Équipe : chauffeurs et véhicules</td>
   </tr>
 </table>
 
@@ -109,6 +117,18 @@ flowchart LR
 Chaque combinaison découpage × moteur × nombre de véhicules donne une solution. Les calculs
 tournent en parallèle sur un pool de threads dédié. Le navigateur suit l'avancement par
 WebSocket (STOMP).
+
+| Algorithme | Rôle | Principe |
+|---|---|---|
+| **Secteurs angulaires** | Découpage | Tri des livraisons par angle autour du dépôt, puis coupe en *k* parts égales |
+| **K-medoids** | Découpage | Groupes de voisins autour de livraisons « centres », sur les distances routières |
+| **VROOM** | Ordre de passage | Solveur de tournées d'OpenRouteService : plusieurs véhicules, durée maximale |
+| **Algorithme génétique** | Ordre de passage | 100 ordres de passage qui évoluent pendant 1 000 générations (Jenetics) |
+| **Plus proche voisin** | Ordre de passage | Toujours aller à la livraison non visitée la plus proche |
+| **Haversine × 1,3** | Distances | Estimation sans clé d'API : vol d'oiseau, facteur de détour, 30 km/h |
+
+Le fonctionnement détaillé de chaque algorithme (paramètres, exemples, complexité, limites) est
+dans [docs/algorithmes.md](docs/algorithmes.md).
 
 ## Architecture
 
@@ -204,6 +224,7 @@ glisser-déposer. Le [rapport technique d'origine](docs/rapport-technique.md) d�
 | Document | Contenu |
 |---|---|
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Installation, configuration, tests, production, dépannage |
+| [docs/algorithmes.md](docs/algorithmes.md) | Découpage, moteurs d'itinéraire, matrices, contrainte de durée, calcul des coûts |
 | [docs/architecture.md](docs/architecture.md) | Couches, patterns, pipeline d'optimisation, modèle de données, choix techniques |
 | [docs/api.md](docs/api.md) | Toutes les routes REST et le sujet WebSocket |
 | [docs/fonctionnalites.md](docs/fonctionnalites.md) | Besoins de départ et état de chacun |
