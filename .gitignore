@@ -1,6 +1,9 @@
 node_modules
 dist
-static
+coverage
+target/
+# Build Angular copié dans le jar par le Dockerfile ; le static/ des tests, lui, est versionné.
+backend/server/src/main/resources/static/
 /graph.html
 .idea
 .env
