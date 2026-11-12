@@ -1,14 +1,10 @@
-import { TuiRoot } from "@taiga-ui/core";
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { AppShell } from './layout/app-shell';
 
 @Component({
   selector: 'app-root',
-  imports: [
-    RouterOutlet,
-    TuiRoot
-  ],
-  templateUrl: './app.html',
-  styleUrl: './app.scss'
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [AppShell],
+  template: `<app-shell />`,
 })
 export class App {}

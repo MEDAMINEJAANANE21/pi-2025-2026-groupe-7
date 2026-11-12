@@ -1,0 +1,162 @@
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 16px;
+  min-height: 560px;
+}
+
+.map {
+  min-height: 560px;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: 72vh;
+}
+
+.panel-tabs {
+  padding: 16px 20px 0;
+}
+
+.panel-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  overflow-y: auto;
+}
+
+.chosen {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+
+  ul {
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+  }
+}
+
+.chosen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.livraisons {
+  gap: 12px;
+}
+
+.list-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  app-icon {
+    position: absolute;
+    left: 10px;
+    color: var(--text-3);
+  }
+
+  .input {
+    padding-left: 32px;
+  }
+}
+
+.bulk {
+  display: flex;
+  gap: 4px;
+}
+
+.checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px;
+    border-radius: var(--r);
+    transition: background-color var(--fast) var(--ease), opacity var(--fast) var(--ease);
+
+    &:hover,
+    &.highlighted {
+      background: var(--raised);
+    }
+
+    &.excluded {
+      opacity: 0.5;
+    }
+  }
+
+  .checkbox {
+    align-items: flex-start;
+    min-width: 0;
+
+    input {
+      margin-top: 2px;
+    }
+  }
+
+  .address {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .muted {
+      font-size: 12px;
+    }
+  }
+
+  .none {
+    padding: 16px 8px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .map {
+    min-height: 420px;
+  }
+
+  .panel {
+    max-height: none;
+  }
+}

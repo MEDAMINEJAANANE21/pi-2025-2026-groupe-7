@@ -1,0 +1,44 @@
+.columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.card {
+  overflow: hidden;
+}
+
+.page-meta {
+  max-width: 44rem;
+}
+
+tr.inactive td {
+  color: var(--text-3);
+}
+
+.plate {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+.tag {
+  margin-left: 8px;
+}
+
+.row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.mono-input {
+  font-family: var(--mono);
+  text-transform: uppercase;
+}
+
+@media (max-width: 1100px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

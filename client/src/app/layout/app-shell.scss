@@ -1,0 +1,167 @@
+:host {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px 12px;
+  background: #f4f4f5;
+  border-right: 1px solid var(--line);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Marque : un dépôt, une route, un arrêt. */
+.mark {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--text);
+
+  span {
+    position: absolute;
+    left: 5px;
+    width: 6px;
+    height: 6px;
+    border-radius: 1px;
+    background: #fafafa;
+  }
+
+  i {
+    position: absolute;
+    left: 11px;
+    right: 6px;
+    height: 2px;
+    background: #fafafa;
+  }
+
+  b {
+    position: absolute;
+    left: 14px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+}
+
+nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: var(--r);
+    color: var(--text-2);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color var(--fast) var(--ease), color var(--fast) var(--ease);
+
+    app-icon {
+      color: var(--text-3);
+    }
+
+    &:hover {
+      background: var(--sunken);
+      color: var(--text);
+    }
+
+    &.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: var(--shadow-sm), inset 0 0 0 1px var(--line);
+
+      app-icon {
+        color: var(--accent);
+      }
+    }
+  }
+}
+
+.footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px;
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 13px;
+
+    &:hover {
+      color: var(--text);
+    }
+  }
+}
+
+main {
+  min-width: 0;
+}
+
+.menu-toggle {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  :host {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    position: fixed;
+    z-index: 1500;
+    left: 0;
+    width: 264px;
+    transform: translateX(-100%);
+    transition: transform var(--medium) var(--ease);
+    box-shadow: var(--shadow-float);
+
+    &.open {
+      transform: none;
+    }
+  }
+
+  .menu-toggle {
+    display: inline-flex;
+    position: fixed;
+    z-index: 1600;
+    right: 16px;
+    top: 16px;
+    background: var(--surface);
+  }
+}
+
+@media print {
+  :host {
+    display: block;
+  }
+}

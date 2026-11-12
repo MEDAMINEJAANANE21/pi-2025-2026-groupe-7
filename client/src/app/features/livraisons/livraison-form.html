@@ -1,0 +1,82 @@
+<dialog #dialog class="dialog">
+  <form (ngSubmit)="submit()">
+    <header>
+      <h2>{{ editing() ? 'Modifier la livraison' : 'Nouvelle livraison' }}</h2>
+      @if (editing(); as l) {
+        <p class="mono">{{ l.reference }}</p>
+      }
+    </header>
+
+    <div class="dialog-body form-grid">
+      <label class="field span-2 lookup">
+        <span>Rechercher l'adresse</span>
+        <div class="search">
+          <app-icon name="search" />
+          <input class="input" type="search" name="query" autocomplete="off" placeholder="12 rue Félix Viallet, Grenoble"
+                 [ngModel]="query()" (ngModelChange)="search($event)" />
+        </div>
+        @if (suggestions().length) {
+          <ul class="suggestions" role="listbox">
+            @for (s of suggestions(); track s.label) {
+              <li role="option"><button type="button" (click)="pick(s)"><app-icon name="pin" /> {{ s.label }}</button></li>
+            }
+          </ul>
+        }
+        <span class="hint">Base Adresse Nationale : choisir une proposition remplit les champs et la position</span>
+      </label>
+
+      <label class="field">
+        <span>Numéro</span>
+        <input class="input" name="numero" [ngModel]="model().numero" (ngModelChange)="update('numero', $event)" />
+      </label>
+      <label class="field">
+        <span>Rue</span>
+        <input class="input" name="rue" required [ngModel]="model().rue" (ngModelChange)="update('rue', $event)" />
+      </label>
+      <label class="field">
+        <span>Code postal</span>
+        <input class="input" name="codePostal" required [ngModel]="model().codePostal" (ngModelChange)="update('codePostal', $event)" />
+      </label>
+      <label class="field">
+        <span>Ville</span>
+        <input class="input" name="ville" required [ngModel]="model().ville" (ngModelChange)="update('ville', $event)" />
+      </label>
+      <label class="field">
+        <span>Latitude</span>
+        <input class="input num" type="number" step="any" name="lat" required [ngModel]="model().lat" (ngModelChange)="update('lat', $event)" />
+      </label>
+      <label class="field">
+        <span>Longitude</span>
+        <input class="input num" type="number" step="any" name="lng" required [ngModel]="model().lng" (ngModelChange)="update('lng', $event)" />
+      </label>
+
+      <label class="field">
+        <span>Poids</span>
+        <div class="input-suffix">
+          <input class="input num" type="number" min="0" step="0.1" name="poids" required [ngModel]="model().poids" (ngModelChange)="update('poids', $event)" />
+          <em>kg</em>
+        </div>
+      </label>
+      <label class="field">
+        <span>Temps de montage</span>
+        <div class="input-suffix">
+          <input class="input num" type="number" min="0" step="5" name="montage" [ngModel]="model().montageMinutes" (ngModelChange)="update('montageMinutes', $event ?? 0)" />
+          <em>min</em>
+        </div>
+      </label>
+      <label class="field span-2">
+        <span>Date de commande</span>
+        <input class="input" type="date" name="dateCommande" [ngModel]="model().dateCommande" (ngModelChange)="update('dateCommande', $event)" />
+      </label>
+
+      @if (error(); as message) {
+        <p class="field span-2"><span class="error">{{ message }}</span></p>
+      }
+    </div>
+
+    <footer>
+      <button class="btn" type="button" (click)="close()">Annuler</button>
+      <button class="btn primary" type="submit" [disabled]="saving()">{{ editing() ? 'Enregistrer' : 'Créer la livraison' }}</button>
+    </footer>
+  </form>
+</dialog>

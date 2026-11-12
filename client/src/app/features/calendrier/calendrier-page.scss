@@ -1,0 +1,82 @@
+.calendar {
+  overflow: hidden;
+}
+
+.weekdays,
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.weekdays span {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--text-3);
+  background: var(--raised);
+  border-bottom: 1px solid var(--line);
+}
+
+.day {
+  min-height: 104px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  text-decoration: none;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  transition: background-color var(--fast) var(--ease);
+
+  &:nth-child(7n) {
+    border-right: 0;
+  }
+
+  &:hover {
+    background: var(--raised);
+  }
+
+  &.outside .number {
+    color: var(--text-3);
+  }
+
+  &.today .number {
+    background: var(--accent);
+    color: #ffffff;
+  }
+
+  .number {
+    align-self: flex-start;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    font-weight: 500;
+  }
+
+  .status {
+    font-size: 12px;
+  }
+}
+
+.week:last-child .day {
+  border-bottom: 0;
+}
+
+@media (max-width: 720px) {
+  .day {
+    min-height: 64px;
+    padding: 8px;
+
+    .status {
+      font-size: 0;
+      gap: 0;
+    }
+  }
+}

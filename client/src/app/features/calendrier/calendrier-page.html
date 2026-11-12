@@ -1,0 +1,72 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-title">
+      <h1>{{ title() }}</h1>
+      <p class="page-meta">Choisissez une journée pour préparer ou consulter ses tournées</p>
+    </div>
+    <div class="actions">
+      <button class="btn" type="button" (click)="backToToday()">Aujourd'hui</button>
+      <button class="btn icon-only" type="button" aria-label="Mois précédent" (click)="move(-1)">
+        <app-icon name="chevron-left" />
+      </button>
+      <button class="btn icon-only" type="button" aria-label="Mois suivant" (click)="move(1)">
+        <app-icon name="chevron-right" />
+      </button>
+    </div>
+  </header>
+
+  <section class="stats" aria-label="Chiffres du mois">
+    <div class="card stat">
+      <span class="label">Livraisons à planifier</span>
+      <span class="value accent">{{ formatInteger(aPlanifier()) }}</span>
+      <span class="detail">Toutes dates de commande confondues</span>
+    </div>
+    <div class="card stat">
+      <span class="label">Journées optimisées</span>
+      <span class="value">{{ planifiees() }}</span>
+      <span class="detail">Sur le mois affiché</span>
+    </div>
+    <div class="card stat">
+      <span class="label">Solutions retenues</span>
+      <span class="value">{{ retenues() }}</span>
+      <span class="detail">Journées prêtes à partir</span>
+    </div>
+  </section>
+
+  @if (aPlanifier() === 0) {
+    <div class="card empty">
+      <h3>Aucune livraison à planifier</h3>
+      <p>Ajoutez des livraisons ou chargez un jeu d'essai pour découvrir l'optimisation des tournées.</p>
+      <a class="btn primary" routerLink="/livraisons">
+        <app-icon name="package" />
+        Gérer les livraisons
+      </a>
+    </div>
+  }
+
+  <section class="card calendar" aria-label="Calendrier">
+    <div class="weekdays">
+      @for (weekday of weekdays; track weekday) {
+        <span>{{ weekday }}</span>
+      }
+    </div>
+    @for (week of weeks(); track week[0].iso) {
+      <div class="week">
+        @for (day of week; track day.iso) {
+          @let info = resume(day.iso);
+          <a class="day" [routerLink]="['/journees', day.iso]" [class.outside]="!day.inMonth"
+             [class.today]="day.iso === today" [class.planned]="!!info?.nbSolutions">
+            <span class="number num">{{ day.dayOfMonth }}</span>
+            @if (running(info)) {
+              <span class="status running">Optimisation en cours</span>
+            } @else if (info?.solutionChoisieId) {
+              <span class="status chosen">Solution retenue</span>
+            } @else if (info?.nbSolutions) {
+              <span class="status">{{ info!.nbSolutions }} solution{{ info!.nbSolutions > 1 ? 's' : '' }}</span>
+            }
+          </a>
+        }
+      </div>
+    }
+  </section>
+</div>

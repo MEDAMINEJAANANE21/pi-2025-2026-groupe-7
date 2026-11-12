@@ -1,0 +1,82 @@
+<article class="card tournee" [class.hors]="!tournee()" [style.--route-color]="color()">
+  <header>
+    <div class="heading">
+      @if (color(); as c) {
+        <app-route-ribbon [color]="c" [stops]="livraisons().length" />
+      }
+      <h3>{{ title() }}</h3>
+      @if (toutesLivrees()) {
+        <span class="tag positive">Livrée</span>
+      }
+    </div>
+    <span class="mono muted">{{ livraisons().length }} arrêt{{ livraisons().length > 1 ? 's' : '' }} · {{ weight(poids()) }}</span>
+  </header>
+
+  @if (tournee(); as t) {
+    <dl class="figures">
+      <div><dt>Distance</dt><dd class="num">{{ distance(t.statistiques?.distance) }}</dd></div>
+      <div><dt>Durée</dt><dd class="num">{{ tempsTotal() }}</dd></div>
+      <div><dt>Coût</dt><dd class="num">{{ euros(t.finances?.coutTotal) }}</dd></div>
+      <div><dt>Marge</dt><dd class="num" [class.negative]="(t.finances?.marge ?? 0) < 0">{{ euros(t.finances?.marge) }}</dd></div>
+    </dl>
+    @if (modified()) {
+      <p class="stale mono">Chiffres recalculés à l'enregistrement</p>
+    }
+
+    <div class="affectation">
+      <label class="field">
+        <span>Chauffeur</span>
+        <select class="input small" [value]="t.chauffeur?.id ?? ''" (change)="changeChauffeur($any($event.target).value)">
+          <option value="">Non affecté</option>
+          @for (chauffeur of chauffeursActifs(); track chauffeur.id) {
+            <option [value]="chauffeur.id" [selected]="chauffeur.id === t.chauffeur?.id">{{ chauffeur.prenom }} {{ chauffeur.nom }}</option>
+          }
+        </select>
+      </label>
+      <label class="field">
+        <span>Véhicule</span>
+        <select class="input small" [value]="t.vehicule?.id ?? ''" (change)="changeVehicule($any($event.target).value)">
+          <option value="">Non affecté</option>
+          @for (vehicule of vehiculesActifs(); track vehicule.id) {
+            <option [value]="vehicule.id" [selected]="vehicule.id === t.vehicule?.id">
+              {{ vehicule.immatriculation }}{{ vehicule.capaciteKg ? ' · ' + integer(vehicule.capaciteKg) + ' kg' : '' }}
+            </option>
+          }
+        </select>
+      </label>
+    </div>
+    @if (surcharge()) {
+      <p class="warning"><app-icon name="alert" [size]="14" /> Le chargement dépasse la capacité du véhicule</p>
+    }
+  }
+
+  <ol class="stops" cdkDropList [cdkDropListData]="listId()" (cdkDropListDropped)="dropped.emit($event)">
+    @for (livraison of livraisons(); track livraison.id; let i = $index) {
+      <li cdkDrag [cdkDragData]="livraison" [attr.data-livraison]="livraison.id"
+          [class.highlighted]="highlightedId() === livraison.id" [class.done]="livraison.livree"
+          (mouseenter)="hovered.emit(livraison.id)" (mouseleave)="hovered.emit(null)">
+        <span class="grip" cdkDragHandle aria-label="Déplacer"><app-icon name="grip" /></span>
+        <span class="order mono">{{ tournee() ? i + 1 : '·' }}</span>
+        <span class="address">
+          <span>{{ streetLine(livraison.adresse) }}</span>
+          <span class="muted">{{ cityLine(livraison.adresse) }}</span>
+        </span>
+        <span class="mono muted meta">{{ weight(livraison.poids) }}</span>
+        <div class="placeholder" *cdkDragPlaceholder></div>
+      </li>
+    } @empty {
+      <li class="empty-list muted">{{ tournee() ? 'Glissez des livraisons ici' : 'Toutes les livraisons sont planifiées' }}</li>
+    }
+  </ol>
+
+  @if (tournee(); as t) {
+    <footer>
+      <a class="btn small" [routerLink]="['/solutions', solutionId(), 'tournees', t.id, 'feuille-de-route']">
+        <app-icon name="printer" /> Feuille de route
+      </a>
+      <button class="btn small ghost" type="button" [disabled]="toutesLivrees() || modified()" (click)="terminer.emit()">
+        <app-icon name="check" /> Marquer livrée
+      </button>
+    </footer>
+  }
+</article>

@@ -1,0 +1,62 @@
+<div class="page">
+  <div class="toolbar no-print">
+    <a class="btn ghost" [routerLink]="['/solutions', solutionId()]"><app-icon name="arrow-left" /> Retour à la solution</a>
+    <div class="actions">
+      <a class="btn" [href]="csvUrl()" download><app-icon name="download" /> CSV</a>
+      <button class="btn primary" type="button" (click)="print()"><app-icon name="printer" /> Imprimer</button>
+    </div>
+  </div>
+
+  @if (failed() || (solution() && !tournee())) {
+    <div class="card empty"><h3>Tournée introuvable</h3></div>
+  } @else if (tournee(); as t) {
+    <article class="sheet">
+      <header>
+        <div>
+          <p class="mono muted">Feuille de route · tournée {{ index() + 1 }}</p>
+          <h1>{{ day() }}</h1>
+        </div>
+        <app-route-ribbon [color]="color()" [stops]="t.livraisons.length" />
+      </header>
+
+      <dl class="crew">
+        <div><dt>Chauffeur</dt><dd>{{ t.chauffeur ? t.chauffeur.prenom + ' ' + t.chauffeur.nom : 'À affecter' }}</dd></div>
+        <div><dt>Véhicule</dt><dd>{{ t.vehicule ? t.vehicule.immatriculation + (t.vehicule.modele ? ' · ' + t.vehicule.modele : '') : 'À affecter' }}</dd></div>
+        <div><dt>Arrêts</dt><dd class="num">{{ t.livraisons.length }}</dd></div>
+        <div><dt>Distance</dt><dd class="num">{{ distance(t.statistiques?.distance) }}</dd></div>
+        <div><dt>Durée estimée</dt><dd class="num">{{ totalTime() }}</dd></div>
+        <div><dt>Chargement</dt><dd class="num">{{ weight(t.poidsTotal) }}</dd></div>
+      </dl>
+
+      <ol class="stops">
+        <li class="depot">
+          <span class="order">D</span>
+          <span class="address"><strong>Départ du dépôt</strong></span>
+        </li>
+        @for (livraison of t.livraisons; track livraison.id; let i = $index) {
+          <li>
+            <span class="order num" [style.background]="color()">{{ i + 1 }}</span>
+            <span class="address">
+              <strong>{{ streetLine(livraison.adresse) }}</strong>
+              <span>{{ cityLine(livraison.adresse) }}</span>
+            </span>
+            <span class="meta mono">
+              {{ livraison.reference }}<br>
+              {{ weight(livraison.poids) }}@if (livraison.tempsMontage && livraison.tempsMontage !== 'PT0S') { · montage {{ duration(livraison.tempsMontage) }} }
+            </span>
+            <span class="box" [class.checked]="livraison.livree" aria-label="Case à cocher à la livraison"></span>
+          </li>
+        }
+        <li class="depot">
+          <span class="order">D</span>
+          <span class="address"><strong>Retour au dépôt</strong></span>
+        </li>
+      </ol>
+
+      <footer>
+        <div class="signature"><span>Heure de retour</span></div>
+        <div class="signature"><span>Signature du chauffeur</span></div>
+      </footer>
+    </article>
+  }
+</div>

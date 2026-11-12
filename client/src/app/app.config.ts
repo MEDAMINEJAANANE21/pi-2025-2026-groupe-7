@@ -1,16 +1,14 @@
-import { provideEventPlugins } from "@taiga-ui/event-plugins";
-import { provideAnimations } from "@angular/platform-browser/animations";
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
-import { provideRouter } from '@angular/router';
-
+import { provideHttpClient, withFetch } from '@angular/common/http';
+import { ApplicationConfig, LOCALE_ID, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
+import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-        provideAnimations(),
-        provideBrowserGlobalErrorListeners(),
+    provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(routes),
-        provideEventPlugins()
-    ]
+    provideHttpClient(withFetch()),
+    provideRouter(routes, withComponentInputBinding(), withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
+    { provide: LOCALE_ID, useValue: 'fr' },
+  ],
 };

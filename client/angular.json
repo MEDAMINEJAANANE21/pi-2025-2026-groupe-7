@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "projet-data-synthesis": {
+    "cybercommandes": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -31,18 +31,11 @@
                 "glob": "**/*",
                 "input": "./node_modules/leaflet/dist/images",
                 "output": "assets/"
-              },
-              {
-                "glob": "**/*",
-                "input": "node_modules/@taiga-ui/icons/src",
-                "output": "assets/taiga-ui/icons"
               }
             ],
             "styles": [
-              "node_modules/@taiga-ui/core/styles/taiga-ui-theme.less",
-              "node_modules/@taiga-ui/core/styles/taiga-ui-fonts.less",
-              "src/styles.scss",
-              "./node_modules/leaflet/dist/leaflet.css"
+              "./node_modules/leaflet/dist/leaflet.css",
+              "src/styles.scss"
             ]
           },
           "configurations": {
@@ -50,8 +43,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "5mb",
-                  "maximumError": "15mb"
+                  "maximumWarning": "1mb",
+                  "maximumError": "2mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -73,10 +66,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "projet-data-synthesis:build:production"
+              "buildTarget": "cybercommandes:build:production"
             },
             "development": {
-              "buildTarget": "projet-data-synthesis:build:development"
+              "buildTarget": "cybercommandes:build:development"
             }
           },
           "defaultConfiguration": "development"

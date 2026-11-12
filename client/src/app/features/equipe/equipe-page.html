@@ -1,0 +1,132 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-title">
+      <h1>Équipe</h1>
+      <p class="page-meta">Chauffeurs et véhicules à affecter aux tournées. Le taux horaire et la consommation servent au calcul des coûts.</p>
+    </div>
+  </header>
+
+  <div class="columns">
+    <section class="card">
+      <div class="card-header">
+        <h2>Chauffeurs</h2>
+        <button class="btn small" type="button" (click)="editChauffeur(null)"><app-icon name="plus" /> Ajouter</button>
+      </div>
+      @if (chauffeurs().length) {
+        <table class="table">
+          <thead><tr><th>Nom</th><th>Téléphone</th><th class="right">Taux horaire</th><th><span class="sr-only">Actions</span></th></tr></thead>
+          <tbody>
+            @for (c of chauffeurs(); track c.id) {
+              <tr [class.inactive]="!c.actif">
+                <td>{{ c.prenom }} {{ c.nom }} @if (!c.actif) { <span class="tag">Inactif</span> }</td>
+                <td class="num secondary">{{ c.telephone || '—' }}</td>
+                <td class="right num">{{ c.tauxHoraire ? euros(c.tauxHoraire) + ' / h' : 'Par défaut' }}</td>
+                <td class="right">
+                  <div class="row-actions">
+                    <button class="btn small ghost icon-only" type="button" aria-label="Modifier" (click)="editChauffeur(c)"><app-icon name="pencil" /></button>
+                    <button class="btn small ghost icon-only danger" type="button" aria-label="Supprimer" (click)="removeChauffeur(c)"><app-icon name="trash" /></button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <div class="empty"><h3>Aucun chauffeur</h3><p>Ajoutez les chauffeurs pour les affecter aux tournées.</p></div>
+      }
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <h2>Véhicules</h2>
+        <button class="btn small" type="button" (click)="editVehicule(null)"><app-icon name="plus" /> Ajouter</button>
+      </div>
+      @if (vehicules().length) {
+        <table class="table">
+          <thead><tr><th>Immatriculation</th><th>Modèle</th><th class="right">Charge utile</th><th class="right">Conso.</th><th><span class="sr-only">Actions</span></th></tr></thead>
+          <tbody>
+            @for (v of vehicules(); track v.id) {
+              <tr [class.inactive]="!v.actif">
+                <td class="mono plate">{{ v.immatriculation }} @if (!v.actif) { <span class="tag">Inactif</span> }</td>
+                <td class="secondary">{{ v.modele || '—' }}</td>
+                <td class="right num">{{ v.capaciteKg ? integer(v.capaciteKg) + ' kg' : '—' }}</td>
+                <td class="right num">{{ v.consommationLitresAux100Km ? decimal(v.consommationLitresAux100Km) + ' L/100 km' : '—' }}</td>
+                <td class="right">
+                  <div class="row-actions">
+                    <button class="btn small ghost icon-only" type="button" aria-label="Modifier" (click)="editVehicule(v)"><app-icon name="pencil" /></button>
+                    <button class="btn small ghost icon-only danger" type="button" aria-label="Supprimer" (click)="removeVehicule(v)"><app-icon name="trash" /></button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <div class="empty"><h3>Aucun véhicule</h3><p>Renseignez la charge utile pour être prévenu d'un chargement trop lourd.</p></div>
+      }
+    </section>
+  </div>
+</div>
+
+<dialog #chauffeurDialog class="dialog">
+  <form (ngSubmit)="saveChauffeur()">
+    <header><h2>{{ chauffeurId() ? 'Modifier le chauffeur' : 'Nouveau chauffeur' }}</h2></header>
+    <div class="dialog-body form-grid">
+      <label class="field"><span>Prénom</span>
+        <input class="input" name="prenom" required [ngModel]="chauffeur().prenom" (ngModelChange)="patchChauffeur({ prenom: $event })" /></label>
+      <label class="field"><span>Nom</span>
+        <input class="input" name="nom" required [ngModel]="chauffeur().nom" (ngModelChange)="patchChauffeur({ nom: $event })" /></label>
+      <label class="field"><span>Téléphone</span>
+        <input class="input" name="telephone" type="tel" [ngModel]="chauffeur().telephone" (ngModelChange)="patchChauffeur({ telephone: $event || null })" /></label>
+      <label class="field"><span>Taux horaire chargé</span>
+        <div class="input-suffix">
+          <input class="input num" name="taux" type="number" min="0" step="0.5" [ngModel]="chauffeur().tauxHoraire" (ngModelChange)="patchChauffeur({ tauxHoraire: $event })" />
+          <em>€/h</em>
+        </div>
+        <span class="hint">Vide = taux par défaut</span>
+      </label>
+      <label class="checkbox span-2">
+        <input type="checkbox" name="actif" [ngModel]="chauffeur().actif" (ngModelChange)="patchChauffeur({ actif: $event })" />
+        Disponible pour les tournées
+      </label>
+      @if (formError(); as message) { <p class="span-2 field"><span class="error">{{ message }}</span></p> }
+    </div>
+    <footer>
+      <button class="btn" type="button" (click)="chauffeurDialog.close()">Annuler</button>
+      <button class="btn primary" type="submit">Enregistrer</button>
+    </footer>
+  </form>
+</dialog>
+
+<dialog #vehiculeDialog class="dialog">
+  <form (ngSubmit)="saveVehicule()">
+    <header><h2>{{ vehiculeId() ? 'Modifier le véhicule' : 'Nouveau véhicule' }}</h2></header>
+    <div class="dialog-body form-grid">
+      <label class="field"><span>Immatriculation</span>
+        <input class="input mono-input" name="immatriculation" required placeholder="AB-123-CD"
+               [ngModel]="vehicule().immatriculation" (ngModelChange)="patchVehicule({ immatriculation: $event })" /></label>
+      <label class="field"><span>Modèle</span>
+        <input class="input" name="modele" placeholder="Renault Master" [ngModel]="vehicule().modele" (ngModelChange)="patchVehicule({ modele: $event || null })" /></label>
+      <label class="field"><span>Charge utile</span>
+        <div class="input-suffix">
+          <input class="input num" name="capacite" type="number" min="0" [ngModel]="vehicule().capaciteKg" (ngModelChange)="patchVehicule({ capaciteKg: $event })" />
+          <em>kg</em>
+        </div></label>
+      <label class="field"><span>Consommation</span>
+        <div class="input-suffix">
+          <input class="input num" name="conso" type="number" min="0" step="0.1" [ngModel]="vehicule().consommationLitresAux100Km"
+                 (ngModelChange)="patchVehicule({ consommationLitresAux100Km: $event })" />
+          <em>L/100</em>
+        </div></label>
+      <label class="checkbox span-2">
+        <input type="checkbox" name="actif" [ngModel]="vehicule().actif" (ngModelChange)="patchVehicule({ actif: $event })" />
+        En service
+      </label>
+      @if (formError(); as message) { <p class="span-2 field"><span class="error">{{ message }}</span></p> }
+    </div>
+    <footer>
+      <button class="btn" type="button" (click)="vehiculeDialog.close()">Annuler</button>
+      <button class="btn primary" type="submit">Enregistrer</button>
+    </footer>
+  </form>
+</dialog>

@@ -1,0 +1,56 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 280px;
+
+  app-icon {
+    position: absolute;
+    left: 10px;
+    color: var(--text-3);
+  }
+
+  .input {
+    padding-left: 32px;
+  }
+}
+
+.summary {
+  margin-left: auto;
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.address {
+  display: flex;
+  flex-direction: column;
+  line-height: 18px;
+  padding: 6px 0;
+
+  .muted {
+    font-size: 12px;
+  }
+}
+
+.reference {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}

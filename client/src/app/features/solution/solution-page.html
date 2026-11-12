@@ -1,0 +1,68 @@
+<div class="page">
+  @if (notFound()) {
+    <div class="card empty">
+      <h3>Solution introuvable</h3>
+      <p>Elle a peut-être été supprimée par un nouvel import de données.</p>
+      <a class="btn" routerLink="/">Retour au calendrier</a>
+    </div>
+  } @else if (solution(); as s) {
+    <header class="page-header">
+      <div class="page-title">
+        <a class="back" [routerLink]="['/journees', s.date]"><app-icon name="arrow-left" [size]="14" /> {{ title() }}</a>
+        <h1>Solution n° {{ s.id }}</h1>
+        <p class="mono muted">{{ strategie() }}</p>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button" (click)="redraw()">
+          <app-icon name="refresh" /> Redessiner les tracés
+        </button>
+      </div>
+    </header>
+
+    @if (stats(); as st) {
+      <section class="stats" aria-label="Bilan de la solution">
+        <div class="card stat"><span class="label">Livraisons</span><span class="value">{{ st.nbLivraisonsTotal }}</span>
+          <span class="detail">{{ st.nbVehicules }} tournée{{ st.nbVehicules > 1 ? 's' : '' }}</span></div>
+        <div class="card stat"><span class="label">Distance</span><span class="value">{{ distance(st.distanceTotal) }}</span>
+          <span class="detail">Carburant {{ fuel(st.carburantTotal) }}</span></div>
+        <div class="card stat"><span class="label">Temps de travail</span><span class="value">{{ duration(st.tempsTotal) }}</span>
+          <span class="detail">Tournée la plus longue {{ duration(st.tempsTotalMax) }}</span></div>
+        <div class="card stat"><span class="label">Coût</span><span class="value">{{ euros(st.finances?.coutTotal) }}</span>
+          <span class="detail">Chauffeurs {{ euros(st.finances?.coutChauffeur) }}</span></div>
+        <div class="card stat"><span class="label">Marge</span><span class="value accent">{{ euros(st.finances?.marge) }}</span>
+          <span class="detail">Pour {{ euros(st.finances?.chiffreAffaires) }} facturés</span></div>
+      </section>
+    }
+
+    <div class="workspace">
+      <app-routes-map class="map" [depot]="depot()" [stops]="stops()" [routes]="routes()" [highlightedId]="highlighted()"
+                      (stopSelected)="focusStop($event)" />
+
+      <div class="editor" cdkDropListGroup>
+        <p class="hint secondary">Glissez une livraison pour changer l'ordre de passage ou la confier à un autre véhicule.</p>
+        @if (draft(); as d) {
+          @for (tournee of d.tournees; track tournee.id; let i = $index) {
+            <app-tournee-card [listId]="tournee.id" [title]="'Tournée ' + (i + 1)" [color]="routeColor(i)"
+                              [livraisons]="tournee.livraisons" [tournee]="tourneeOf(tournee.id)" [solutionId]="s.id"
+                              [chauffeurs]="chauffeurs()" [vehicules]="vehicules()" [highlightedId]="highlighted()"
+                              [modified]="isModified(tournee.id)"
+                              (dropped)="drop($event)" (affecter)="affecter(tournee.id, $event)"
+                              (terminer)="terminer(tournee.id, i)" (hovered)="highlighted.set($event)" />
+          }
+          <app-tournee-card [listId]="horsSolutionId" title="Hors solution" [livraisons]="d.horsSolution"
+                            [highlightedId]="highlighted()" (dropped)="drop($event)" (hovered)="highlighted.set($event)" />
+        }
+      </div>
+    </div>
+
+    @if (dirty()) {
+      <div class="save-bar" role="status">
+        <span>Modifications non enregistrées</span>
+        <button class="btn" type="button" (click)="reset()"><app-icon name="undo" /> Annuler</button>
+        <button class="btn primary" type="button" [disabled]="saving()" (click)="save()">
+          <app-icon name="check" /> {{ saving() ? 'Enregistrement…' : 'Enregistrer' }}
+        </button>
+      </div>
+    }
+  }
+</div>

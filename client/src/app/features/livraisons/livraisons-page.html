@@ -1,0 +1,91 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-title">
+      <h1>Livraisons</h1>
+      <p class="page-meta">Commandes à livrer chez les clients, et historique des livraisons faites</p>
+    </div>
+    <div class="actions">
+      <button class="btn" type="button" (click)="donnees().open()"><app-icon name="database" /> Données d'essai</button>
+      <button class="btn primary" type="button" (click)="form().open()"><app-icon name="plus" /> Nouvelle livraison</button>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="toolbar">
+      <div class="segmented" role="tablist" aria-label="Statut">
+        @for (filter of filters; track filter.value) {
+          <button type="button" role="tab" [class.active]="statut() === filter.value" (click)="statut.set(filter.value)">
+            {{ filter.label }}
+          </button>
+        }
+      </div>
+      <label class="search">
+        <app-icon name="search" />
+        <input class="input small" type="search" placeholder="Référence, rue ou ville" aria-label="Rechercher"
+               [ngModel]="search()" (ngModelChange)="search.set($event)" />
+      </label>
+      <span class="mono muted summary">{{ integer(visible().length) }} livraisons · {{ weight(poidsTotal()) }}</span>
+    </div>
+
+    @if (visible().length) {
+      <div class="scroll">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Adresse</th>
+              <th>Référence</th>
+              <th>Commande</th>
+              <th class="right">Poids</th>
+              <th class="right">Montage</th>
+              <th>Statut</th>
+              <th class="right"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (livraison of visible(); track livraison.id) {
+              <tr>
+                <td>
+                  <div class="address">
+                    <span>{{ streetLine(livraison.adresse) }}</span>
+                    <span class="muted">{{ cityLine(livraison.adresse) }}</span>
+                  </div>
+                </td>
+                <td class="mono muted reference">{{ livraison.reference }}</td>
+                <td class="num">{{ shortDay(livraison.dateCommande) }}</td>
+                <td class="right num">{{ weight(livraison.poids) }}</td>
+                <td class="right num">{{ livraison.tempsMontage === 'PT0S' ? '—' : duration(livraison.tempsMontage) }}</td>
+                <td>
+                  <span class="status" [class.done]="livraison.livree">{{ livraison.livree ? 'Livrée' : 'À livrer' }}</span>
+                </td>
+                <td class="right">
+                  <div class="row-actions">
+                    <button class="btn small ghost" type="button" (click)="toggleLivree(livraison)">
+                      {{ livraison.livree ? 'Remettre à livrer' : 'Marquer livrée' }}
+                    </button>
+                    <button class="btn small ghost icon-only" type="button" aria-label="Modifier" (click)="form().open(livraison)">
+                      <app-icon name="pencil" />
+                    </button>
+                    <button class="btn small ghost icon-only danger" type="button" aria-label="Supprimer" (click)="remove(livraison)">
+                      <app-icon name="trash" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else if (!loading()) {
+      <div class="empty">
+        <h3>{{ search() ? 'Aucun résultat' : 'Aucune livraison' }}</h3>
+        <p>{{ search() ? 'Essayez une autre rue ou une autre ville.' : 'Créez une livraison ou chargez un jeu d’essai pour démarrer.' }}</p>
+        @if (!search()) {
+          <button class="btn primary" type="button" (click)="donnees().open()"><app-icon name="database" /> Charger un jeu d'essai</button>
+        }
+      </div>
+    }
+  </section>
+</div>
+
+<app-livraison-form (saved)="reload()" />
+<app-donnees-dialog (changed)="reload()" />

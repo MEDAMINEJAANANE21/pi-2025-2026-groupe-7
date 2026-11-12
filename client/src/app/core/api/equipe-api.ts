@@ -1,0 +1,37 @@
+import { inject, Injectable } from '@angular/core';
+import { z } from 'zod';
+import { Chauffeur, ChauffeurRequest, ChauffeurSchema, Vehicule, VehiculeRequest, VehiculeSchema } from '../models/api';
+import { ApiClient } from './api-client';
+
+@Injectable({ providedIn: 'root' })
+export class EquipeApi {
+  private readonly api = inject(ApiClient);
+
+  chauffeurs(): Promise<Chauffeur[]> {
+    return this.api.get('/chauffeurs', z.array(ChauffeurSchema));
+  }
+
+  saveChauffeur(id: number | null, request: ChauffeurRequest): Promise<Chauffeur> {
+    return id === null
+      ? this.api.post('/chauffeurs', ChauffeurSchema, request)
+      : this.api.put(`/chauffeurs/${id}`, ChauffeurSchema, request);
+  }
+
+  deleteChauffeur(id: number): Promise<void> {
+    return this.api.delete(`/chauffeurs/${id}`);
+  }
+
+  vehicules(): Promise<Vehicule[]> {
+    return this.api.get('/vehicules', z.array(VehiculeSchema));
+  }
+
+  saveVehicule(id: number | null, request: VehiculeRequest): Promise<Vehicule> {
+    return id === null
+      ? this.api.post('/vehicules', VehiculeSchema, request)
+      : this.api.put(`/vehicules/${id}`, VehiculeSchema, request);
+  }
+
+  deleteVehicule(id: number): Promise<void> {
+    return this.api.delete(`/vehicules/${id}`);
+  }
+}

@@ -1,0 +1,168 @@
+.page {
+  max-width: 880px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+/* Feuille A4 : marges généreuses, encre noire, couleur réservée aux numéros d'arrêt. */
+.sheet {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-float);
+  padding: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--text);
+
+  h1 {
+    margin-top: 4px;
+  }
+
+  app-route-ribbon {
+    --ribbon-width: 120px;
+  }
+}
+
+.crew {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px 24px;
+
+  dt {
+    font-size: 12px;
+    color: var(--text-3);
+  }
+
+  dd {
+    margin: 2px 0 0;
+    font-weight: 500;
+  }
+}
+
+.stops {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) auto 20px;
+    align-items: center;
+    gap: 16px;
+    min-height: 56px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line-strong);
+    break-inside: avoid;
+  }
+
+  .order {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-family: var(--mono);
+    font-size: 12px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .depot .order {
+    border-radius: 4px;
+    background: var(--text);
+  }
+
+  .address {
+    display: flex;
+    flex-direction: column;
+
+    strong {
+      font-weight: 500;
+    }
+
+    span {
+      color: var(--text-2);
+      font-size: 13px;
+    }
+  }
+
+  .meta {
+    text-align: right;
+    color: var(--text-2);
+  }
+
+  .box {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--text);
+    border-radius: 3px;
+
+    &.checked {
+      background: var(--text);
+    }
+  }
+}
+
+footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  padding-top: 16px;
+}
+
+.signature {
+  height: 72px;
+  border-bottom: 1px solid var(--text);
+  display: flex;
+  align-items: flex-start;
+
+  span {
+    font-size: 12px;
+    color: var(--text-3);
+  }
+}
+
+@media print {
+  .page {
+    padding: 0;
+    max-width: none;
+  }
+
+  .sheet {
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .sheet {
+    padding: 24px;
+  }
+
+  .crew {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -1,18 +1,22 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideZonelessChangeDetection()]
+      providers: [provideZonelessChangeDetection(), provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
   });
 
-  it('should create the app', () => {
+  it('affiche la navigation principale', async () => {
     const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+    await fixture.whenStable();
+    const links = [...fixture.nativeElement.querySelectorAll('nav a')].map((a: Element) => a.textContent?.trim());
+    expect(links).toEqual(['Calendrier', "Aujourd'hui", 'Livraisons', 'Équipe']);
   });
 });

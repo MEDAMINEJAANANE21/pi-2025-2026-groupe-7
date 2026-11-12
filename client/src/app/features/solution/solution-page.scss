@@ -1,0 +1,80 @@
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-2);
+  text-decoration: none;
+  font-size: 13px;
+
+  &:hover {
+    color: var(--text);
+  }
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 440px;
+  gap: 16px;
+  align-items: start;
+}
+
+.map {
+  position: sticky;
+  top: 24px;
+  height: calc(100vh - 48px);
+  max-height: 760px;
+}
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 80px;
+}
+
+.hint {
+  font-size: 13px;
+}
+
+.save-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 1000;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 8px 8px 20px;
+  border-radius: var(--r-card);
+  background: var(--text);
+  color: #fafafa;
+  box-shadow: var(--shadow-float);
+  animation: rise var(--medium) var(--ease);
+
+  span {
+    margin-right: 12px;
+  }
+
+  .btn:not(.primary) {
+    background: transparent;
+    color: #fafafa;
+    border-color: rgba(255, 255, 255, 0.2);
+
+    &:hover {
+      background: #2b2b2e;
+    }
+  }
+}
+
+@media (max-width: 1100px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .map {
+    position: relative;
+    top: 0;
+    height: 420px;
+  }
+}

@@ -1,0 +1,110 @@
+<div class="page">
+  <header class="page-header">
+    <div class="page-title">
+      <h1>{{ title() }}</h1>
+      <span class="status" [class.running]="running()" [class.done]="statut() === 'TERMINE'">{{ statutLabel() }}</span>
+    </div>
+    <div class="actions">
+      @if (!isToday()) {
+        <a class="btn" [routerLink]="['/journees', todayDate]">Aujourd'hui</a>
+      }
+      <a class="btn icon-only" [routerLink]="['/journees', previousDay()]" aria-label="Jour précédent">
+        <app-icon name="chevron-left" />
+      </a>
+      <a class="btn icon-only" [routerLink]="['/journees', nextDay()]" aria-label="Jour suivant">
+        <app-icon name="chevron-right" />
+      </a>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <app-routes-map class="map" [depot]="depot()" [stops]="stops()" [highlightedId]="highlighted()"
+                    (stopSelected)="highlighted.set($event)" />
+
+    <aside class="card panel">
+      <div class="panel-tabs">
+        <div class="segmented" role="tablist">
+          <button type="button" role="tab" [class.active]="tab() === 'optimiser'" (click)="tab.set('optimiser')">Optimiser</button>
+          <button type="button" role="tab" [class.active]="tab() === 'livraisons'" (click)="tab.set('livraisons')">
+            Livraisons <span class="num muted">{{ selected().length }}/{{ livraisons().length }}</span>
+          </button>
+        </div>
+      </div>
+
+      @if (tab() === 'optimiser') {
+        <div class="panel-body">
+          <app-optimisation-form [livraisonsCount]="selected().length" [statut]="statut()" [busy]="launching() || loading()"
+                                 (launch)="launch($event)" />
+
+          @if (choisie(); as solution) {
+            <section class="chosen">
+              <div class="chosen-header">
+                <h3>Solution retenue</h3>
+                <a class="btn small" [routerLink]="['/solutions', solution.id]">Ouvrir</a>
+              </div>
+              <p class="mono muted">{{ strategieLabel(solution.strategie) }}</p>
+              <ul>
+                @for (tournee of solution.tournees; track tournee.id; let i = $index) {
+                  <li>
+                    <app-route-ribbon [color]="routeColor(i)" [stops]="tournee.livraisons.length" />
+                    <span class="num">{{ distance(tournee.statistiques?.distance) }}</span>
+                    <span class="muted">{{ tournee.chauffeur ? tournee.chauffeur.prenom : 'Sans chauffeur' }}</span>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+        </div>
+      } @else {
+        <div class="panel-body livraisons">
+          <div class="list-tools">
+            <label class="search">
+              <app-icon name="search" />
+              <input class="input small" type="search" placeholder="Rue, ville ou référence" aria-label="Rechercher une livraison"
+                     [ngModel]="search()" (ngModelChange)="search.set($event)" />
+            </label>
+            <div class="bulk">
+              <button class="btn ghost small" type="button" (click)="selectAll(true)">Tout inclure</button>
+              <button class="btn ghost small" type="button" (click)="selectAll(false)">Tout exclure</button>
+            </div>
+          </div>
+          <ul class="checklist">
+            @for (livraison of filtered(); track livraison.id) {
+              <li [class.excluded]="excluded().has(livraison.id)" [class.highlighted]="highlighted() === livraison.id"
+                  (mouseenter)="highlighted.set(livraison.id)" (mouseleave)="highlighted.set(null)">
+                <label class="checkbox">
+                  <input type="checkbox" [checked]="!excluded().has(livraison.id)" (change)="toggle(livraison.id)" />
+                  <span class="address">
+                    <span>{{ streetLine(livraison.adresse) }}</span>
+                    <span class="muted">{{ cityLine(livraison.adresse) }} · commandée le {{ formatShortDay(livraison.dateCommande) }}</span>
+                  </span>
+                </label>
+                <span class="mono muted">{{ weight(livraison.poids) }}</span>
+              </li>
+            } @empty {
+              <li class="none muted">Aucune livraison en attente</li>
+            }
+          </ul>
+        </div>
+      }
+    </aside>
+  </div>
+
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <h2>Solutions générées</h2>
+        <p class="secondary">Triez selon votre priorité du jour puis retenez une solution</p>
+      </div>
+      <span class="mono muted">{{ solutions().length }} solution{{ solutions().length > 1 ? 's' : '' }}</span>
+    </div>
+    @if (solutions().length) {
+      <app-solutions-table [solutions]="solutions()" [choisieId]="choisie()?.id ?? null" (choose)="choose($event)" />
+    } @else {
+      <div class="empty">
+        <h3>{{ running() ? 'Calcul en cours' : 'Aucune solution pour cette journée' }}</h3>
+        <p>{{ running() ? 'Les solutions apparaissent ici dès qu’elles sont prêtes.' : 'Choisissez le nombre de véhicules et la durée maximale, puis lancez l’optimisation.' }}</p>
+      </div>
+    }
+  </section>
+</div>
