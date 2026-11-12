@@ -1,0 +1,11 @@
+# Frontend .dockerignore
+node_modules
+dist
+.angular
+.vscode
+*.log
+npm-debug.log*
+.DS_Store
+
+# Include orsKey.ts even though it's in .gitignore
+!src/app/services/orsKey.ts

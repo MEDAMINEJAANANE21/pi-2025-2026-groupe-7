@@ -1,0 +1,22 @@
+# Root .dockerignore for production build
+.git
+.gitignore
+docs/README.md
+docs
+graph.html
+docker-compose.yml
+
+# Frontend artifacts
+frontend/node_modules
+frontend/.angular
+frontend/dist
+
+# Backend artifacts
+backend/target
+backend/.m2
+
+# Static assets (will be built fresh)
+static
+
+# Include orsKey.ts even though it's in .gitignore
+!frontend/src/app/services/orsKey.ts

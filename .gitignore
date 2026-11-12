@@ -1,0 +1,23 @@
+node_modules
+dist
+static
+/graph.html
+.idea
+.env
+postgres_data/
+
+.nx/cache
+.nx/workspace-data
+
+# Backend
+backend/.gradle
+backend/build
+backend/.idea
+backend/*.iml
+
+# Config locale (outils IA / exports internes)
+CLAUDE.md
+.claude/
+.mcp.json
+.vscode/mcp.json
+project3.json

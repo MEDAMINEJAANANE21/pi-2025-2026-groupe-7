@@ -1,0 +1,120 @@
+.page-header {
+    padding: 0.5rem 1rem;
+    background: var(--tui-background-base);
+    border-bottom: 1px solid var(--tui-border-normal);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+main {
+    display: grid;
+    grid-template-columns: 70% 30%;
+}
+
+.solutions {
+    grid-column: 1 / -1;
+}
+
+aside {
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.tab-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tab-badge {
+    display: inline-block;
+    margin-left: 0.4rem;
+    padding: 0 0.4rem;
+    border-radius: 0.75rem;
+    background: var(--tui-status-warning);
+    color: var(--tui-text-primary-on-accent-03);
+    font-size: 0.7rem;
+    line-height: 1.4rem;
+    vertical-align: middle;
+}
+
+.map-container {
+    position: relative;
+}
+
+.hide-pins {
+    right: 1rem;
+    top: 1rem;
+    z-index: 2;
+    position: absolute;
+    height: fit-content;
+}
+
+.journee-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    .journee-date {
+        margin: 0;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: capitalize;
+        color: var(--tui-text-secondary);
+    }
+
+    .status-label {
+        margin: 0;
+        font-size: 0.875rem;
+
+        .status-prefix {
+            font-weight: 400;
+            color: var(--tui-text-secondary);
+        }
+    }
+
+    .divider {
+        margin: 0.25rem 0;
+        border: none;
+        border-top: 1px solid var(--tui-border-normal);
+    }
+
+    .solution-title {
+        margin: 0;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .stat-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: var(--tui-text-secondary);
+
+        span:last-child {
+            font-weight: 500;
+            color: var(--tui-text-primary);
+        }
+    }
+}
+
+.error-message {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid var(--tui-negative);
+
+    p {
+        margin: 0;
+        color: var(--tui-negative);
+        line-height: 1.6;
+    }
+}

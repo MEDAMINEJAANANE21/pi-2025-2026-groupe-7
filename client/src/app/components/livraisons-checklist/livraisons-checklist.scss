@@ -1,0 +1,116 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.sort-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.25rem 0 0.5rem;
+    flex-wrap: wrap;
+}
+
+.sort-label {
+    font-size: 0.75rem;
+    color: var(--tui-text-secondary);
+}
+
+.sort-btn {
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--tui-border-normal);
+    border-radius: 1rem;
+    background: transparent;
+    font-size: 0.75rem;
+    color: var(--tui-text-secondary);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+
+    &:hover {
+        border-color: var(--tui-border-hover);
+    }
+
+    &--active {
+        border-color: var(--tui-border-focus);
+        background: var(--tui-background-accent-1);
+        color: var(--tui-text-primary-on-accent-1);
+        font-weight: 600;
+    }
+}
+
+.livraison-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    width: 100%;
+    box-sizing: border-box;
+
+    &:hover {
+        background: var(--tui-background-neutral-1);
+    }
+
+    &--highlighted {
+        background: var(--tui-background-accent-1-hover);
+        outline: 2px solid var(--tui-border-focus);
+        outline-offset: -2px;
+    }
+}
+
+.livraison-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    min-width: 0;
+}
+
+.livraison-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.livraison-status {
+    font-size: 0.7rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 0.75rem;
+    background: var(--tui-status-warning-pale);
+    color: var(--tui-status-warning);
+    font-weight: 500;
+
+    &--livree {
+        background: var(--tui-status-positive-pale);
+        color: var(--tui-status-positive);
+    }
+}
+
+.livraison-address {
+    font-size: 0.8rem;
+    color: var(--tui-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.livraison-meta {
+    display: flex;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    color: var(--tui-text-secondary);
+}
+
+.separator {
+    color: var(--tui-border-normal);
+}
+
+.empty-state {
+    color: var(--tui-text-secondary);
+    text-align: center;
+    padding: 1rem 0;
+    font-size: 0.875rem;
+}

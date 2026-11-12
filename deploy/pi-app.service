@@ -1,0 +1,9 @@
+[Unit]
+Description=Deploy app from git main
+After=network-online.target docker.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+User=ecloud
+ExecStart=/opt/pi-app.sh

@@ -1,0 +1,33 @@
+<div class="filter-form">
+    <h3 tuiTitle="s">Filtrer les livraisons</h3>
+    <label tuiLabel>
+        <input tuiCheckbox size="s" type="checkbox" [(ngModel)]="filterLivreeOnly" />
+        Non livrées seulement
+    </label>
+    <div class="filter-dates">
+        <tui-textfield tuiTextfieldSize="s">
+            <label tuiLabel>Date début</label>
+            <input tuiTextfield type="date" [(ngModel)]="filterDateDebut" placeholder="yyyy-MM-dd" />
+        </tui-textfield>
+        <tui-textfield tuiTextfieldSize="s">
+            <label tuiLabel>Date fin</label>
+            <input tuiTextfield type="date" [(ngModel)]="filterDateFin" placeholder="yyyy-MM-dd" />
+        </tui-textfield>
+    </div>
+    <button tuiButton appearance="accent" size="s" type="button" (click)="applyFilter()">
+        Filtrer
+    </button>
+</div>
+
+<div class="livraisons-list">
+    <p tuiLabel="s" class="list-count">
+        {{ visibleCount() }} / {{ livraisons().length }} livraison(s) visible(s)
+    </p>
+    <app-livraisons-checklist
+        [livraisons]="livraisons()"
+        [hiddenIds]="hiddenIds()"
+        [highlightedId]="highlightedId()"
+        (toggleLivraison)="toggleLivraison.emit($event)"
+        (livraisonHovered)="livraisonHovered.emit($event)"
+    ></app-livraisons-checklist>
+</div>

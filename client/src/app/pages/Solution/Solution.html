@@ -1,0 +1,138 @@
+@if (loading() && !solution()) {
+    <tui-loader [showLoader]="true" class="page-loader"></tui-loader>
+} @else if (solution()) {
+    <header>
+        <app-breadcrumbs [items]="breadcrumbs()" />
+        <h1>Solution #{{ solutionId }}</h1>
+    </header>
+    <main>
+        <article>
+            <section class="stats">
+
+                @if (solution()) {
+                    <div class="solution-stats two-column">
+                        <h3>Résumé</h3>
+                        <div class="left">
+                            <div class="stat-row">
+                                <div>Véhicules</div>
+                                <div>{{ getStrategieNbVehicules() ?? getTourneeCount() }}</div>
+                            </div>
+                            <div class="stat-row">
+                                <div>Nombre total de livraisons</div>
+                                <div>{{ getStat('nbLivraisonsTotal') ?? '—' }}</div>
+                            </div>
+                            <div class="stat-row">
+                                <div>Distance totale (m)</div>
+                                <div>{{ formatNumber(getStat('distanceTotal')) }}</div>
+                            </div>
+                            <div class="stat-row">
+                                <div>Carburant total (L)</div>
+                                <div>{{ formatNumber(getStat('carburantTotal')) }}</div>
+                            </div>
+                            <div class="stat-row">
+                                <div>Temps total de route</div>
+                                <div>{{ formatIsoDuration(getStat('tempsRouteTotal')) }}</div>
+                            </div>
+                            <div class="stat-row">
+                                <div>Temps de montage total</div>
+                                <div>{{ formatIsoDuration(getStat('tempsMontageTotal')) }}</div>
+                            </div>
+                        </div>
+                        <div class="right">
+                            <h4>Stratégie</h4>
+                            <div class="stat-row">
+                                <div>Optimisation</div>
+                                <div>{{ solution()?.strategie?.optimisation ?? '—' }}</div>
+                            </div>
+                            <div class="stat-row">
+                                <div>Séparation</div>
+                                <div>{{ solution()?.strategie?.separation ?? '—' }}</div>
+                            </div>
+                            <div class="stat-row">
+                                <div>Nombre véhicules demandé</div>
+                                <div>{{ solution()?.strategie?.nbVehicules ?? '—' }}</div>
+                            </div>
+                            <div class="stat-row">
+                                <div>Max temps par véhicule</div>
+                                <div>
+                                    <app-value-duration [value]="solution()?.strategie?.maxTempsParVehicule" ></app-value-duration>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            </section>
+            <tui-loader [showLoader]="loading()">
+                <div class="map-container">
+                    @if (routesStale()) {
+                        <div class="routes-stale-banner">
+                            <span>⚠️ Les trajets affichés ne reflètent pas les modifications en cours.</span>
+                            <button tuiButton appearance="outline" size="xs" (click)="triggerRedraw()">
+                                Redessiner les trajets
+                            </button>
+                        </div>
+                    }
+                    <div class="hide-pins" tuiCardMedium tuiSurface="floating">
+                        <label tuiLabel>
+                            <input tuiCheckbox size="s" type="checkbox" [(ngModel)]="hidePins" />
+                            Masquer les repères
+                        </label>
+                    </div>
+                    <app-routes-map
+                        style="--map-height: 70vh;"
+                        [zoom]="11"
+                        [center]="{ lat: 45.188529, lng: 5.724524 }"
+                        [parkings]="parking() ? [parking()!] : []"
+                        [hidePins]="hidePins()"
+                        [destinations]="visibleDestinations()"
+                        [routes]="visibleRoutes()"
+                        [highlightedLivraisonId]="highlightedLivraisonId()"
+                        (livraisonFocused)="highlightedLivraisonId.set($event)"
+                        (livraisonPinned)="pinnedLivraisonId.set($event)"
+                    ></app-routes-map>
+                </div>
+            </tui-loader>
+        </article>
+        <aside>
+            <tui-loader [showLoader]="loading()">
+                @if (solution()) {
+                    <div class="editor-header">
+                        <span class="editor-title">Édition des tournées</span>
+                        <button
+                            tuiButton
+                            [appearance]="isDirty() ? 'primary' : 'secondary'"
+                            size="s"
+                            [disabled]="!isDirty() || loading()"
+                            (click)="saveSolution()"
+                        >
+                            @if (isDirty()) {
+                                Sauvegarder *
+                            } @else {
+                                Sauvegardé
+                            }
+                        </button>
+                    </div>
+                    <app-solution-editor
+                        [routes]="localTournees()"
+                        [parking]="parking()"
+                        [hiddenTournees]="hiddenTournees()"
+                        [horseSolutionLivraisons]="horseSolutionLivraisons()"
+                        [missingLivraisonsHidden]="missingLivraisonsHidden()"
+                        [tourneeStats]="currentTourneeStats()"
+                        [highlightedId]="highlightedLivraisonId()"
+                        [pinnedLivraisonId]="pinnedLivraisonId()"
+                        (onUpdate)="onUpdateTournees($event)"
+                        (onToggleVisibility)="toggleTourneeVisibility($event)"
+                        (onToggleMissingVisibility)="toggleMissingVisibility()"
+                        (onUpdateMissingLivraisons)="onUpdateHorseSolution($event)"
+                        (livraisonHovered)="highlightedLivraisonId.set($event)">
+                    </app-solution-editor>
+                }
+            </tui-loader>
+        </aside>
+    </main>
+} @else {
+    <h1>404 Introuvable</h1>
+    <h2>ID de solution invalide</h2>
+}

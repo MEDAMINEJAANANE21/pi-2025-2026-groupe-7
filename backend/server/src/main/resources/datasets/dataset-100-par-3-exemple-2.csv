@@ -1,0 +1,101 @@
+type,name,postCode,city,lat,lng
+parking,38 Rue d'Alembert,38185,Grenoble,45.18801063177941,5.711050400748604
+destination,18 Rue de Pacalaire,38485,Seyssinet-Pariset,45.18030615161153,5.690178661171639
+destination,1879 Route de Sarcenas,38328,Quaix-en-Chartreuse,45.25049529406796,5.732429778220358
+destination,Route de Bens,38471,Le Sappey-en-Chartreuse,45.26459068960404,5.767799342482104
+destination,17 rue du moucherotte,38382,Saint-Égrève,45.222285658558455,5.6807015511313805
+destination,104 Avenue de l’Eygala,38126,Corenc,45.213554539622685,5.761889044302193
+destination,20 Rue Eugène Delacroix,38185,Grenoble,45.19669615002413,5.737884261195838
+destination,Cité Italienne,38547,Villard-Bonnot,45.24619336144873,5.885380775130525
+destination,30 Rue Georges Maeder,38485,Seyssinet-Pariset,45.174124389418594,5.690361078501071
+destination,27 Chemin de Garetiere,38111,Claix,45.11380935056025,5.661319569464377
+destination,7 Chemin de la Cote,38068,Champagnier,45.10865520466524,5.733667219520709
+destination,309 Chemin du Mollard,38188,Herbeys,45.1468902786345,5.797462891397273
+destination,14 Rue du Mont Aiguille,38158,Eybens,45.16048857281503,5.746802660637449
+destination,48 Passage du Four,38120,La Combe-de-Lancey,45.219906640603284,5.895439724458694
+destination,147bis Avenue de la Galochere,38421,Saint-Martin-d'Hères,45.16717677310664,5.770113782137976
+destination,253 Chemin des Alloux,38528,Vaulnaveys-le-Bas,45.10572238146807,5.817761925295423
+destination,33 Rue du Saint Eynard,38169,Fontaine,45.20389781039087,5.688274635834736
+destination,5 Chemin du Monarie,38229,Meylan,45.210621275193425,5.79805000267559
+destination,4 Rue Gaston Monmousseau,38151,Échirolles,45.156381587240595,5.712680092312508
+destination,114 Rue Émile Gilioli,38565,Voreppe,45.28697378105792,5.640875538226474
+destination,15 Chemin de Garetiere,38111,Claix,45.11818674677328,5.661716431045943
+destination,48 Allée Saint Ferréol,38422,Saint-Martin-d'Uriage,45.15161598668667,5.835738626787433
+destination,19 Rue des Berges,38185,Grenoble,45.20465183321963,5.703667319776333
+destination,1842 Route de Narbonne,38423,Saint-Martin-le-Vinoux,45.21261311405612,5.706771538197925
+destination,856b Chemin des Grangeaux,38059,Brié-et-Angonnes,45.123203717473466,5.76970048297439
+destination,950 Route d'Uriage,38422,Saint-Martin-d'Uriage,45.14252898943764,5.8364795460617565
+destination,25 Rue Jean-Baptiste Clément,38151,Échirolles,45.1457613088924,5.7385739693323945
+destination,21 Rue de l’Abbe Vincent,38169,Fontaine,45.19247578760981,5.668061373829082
+destination,201 Chemin du Boeuf,38045,Biviers,45.23488422630226,5.807106387828465
+destination,131 Chemin du Tort,38334,Revel,45.1958267224592,5.886550507937663
+destination,1490 Route de la Tour,38334,Revel,45.19693584539276,5.8583132841119525
+destination,17 Avenue des Martyrs,38185,Grenoble,45.20119014054811,5.7039466963148655
+destination,10 Chemin des Chalets,38111,Claix,45.122372516373126,5.685908785628252
+destination,235 Route de la Croizette,38153,Engins,45.18988771967559,5.6164196849007455
+destination,25 Rue de la Tuilerie,38485,Seyssinet-Pariset,45.17207739825173,5.6879928700595235
+destination,525 Avenue Centrale,38421,Saint-Martin-d'Hères,45.19211365161891,5.766274379917268
+destination,Route du Petit Port,38540,Veurey-Voroize,45.2857399021929,5.611424948872337
+destination,9B Rue de l'Essartie,38421,Saint-Martin-d'Hères,45.17393335815209,5.75749377200202
+destination,252 Chemin de la Porte du Vercors,38433,Saint-Nizier-du-Moucherotte,45.17039443984077,5.648046538430562
+destination,12 Chemin du Mollard Collet,38153,Engins,45.192496936990025,5.6215101154098726
+destination,1175 Route du Replat,38422,Saint-Martin-d'Uriage,45.15947546214551,5.859045355682636
+destination,1174 Chemin de Pré Diot,38397,Saint-Ismier,45.23764867801209,5.834961690885128
+destination,39 Rue des Brassieres,38150,Domène,45.20726128081001,5.8366357460070555
+destination,4 Allée Joséphine Baker,38565,Voreppe,45.29143626430976,5.637708252582537
+destination,77 Chemin du Logis Neuf,38565,Voreppe,45.264674811385156,5.657075458963839
+destination,165 Montée de la Tour,38271,Murianette,45.19105224483136,5.825516492905205
+destination,66 Route du Peuil,38111,Claix,45.12529905584213,5.65073067665827
+destination,18b Avenue Général de Miribel,38547,Villard-Bonnot,45.24628025054074,5.894414574645847
+destination,171 Impasse Robert Desnos,38140,Crolles,45.298759650400726,5.895583515052845
+destination,42 Avenue de la Plaine Fleurie,38229,Meylan,45.202977371247655,5.76075116503405
+destination,Chemin des Seites,38565,Voreppe,45.28848402610771,5.6340473673116
+destination,55 Rue du Petit Lac,38423,Saint-Martin-le-Vinoux,45.21747702364561,5.687654856240789
+destination,Allée Félix Picard,38397,Saint-Ismier,45.226989101026994,5.8420941660432675
+destination,308 Chemin du Ballois,38039,Bernin,45.27107640941974,5.8594302728237695
+destination,15 Avenue de Kimberley,38151,Échirolles,45.14695045443282,5.728536871973469
+destination,30 Rue Sisteron,38485,Seyssinet-Pariset,45.177826236384064,5.695440324280354
+destination,140 Chemin du Boeuf,38045,Biviers,45.23506001826121,5.8090581581517675
+destination,461 Chemin du Diday,38281,Noyarey,45.237833520429156,5.62868367135336
+destination,55 Quai du Drac,38169,Fontaine,45.194027737630066,5.701123252524028
+destination,9 Chemin de Halage,38185,Grenoble,45.19293139097251,5.742213071624019
+destination,614bis Route Departementale 1090,38039,Bernin,45.26912264923246,5.864799816786876
+destination,1 Allee Martin Luther King,38158,Eybens,45.16225984360601,5.740468486996521
+destination,105 Rivoire de la Dame,38474,Sassenage,45.22005984737251,5.652231409415447
+destination,11c Rue Pasteur,38486,Seyssins,45.17101322040074,5.698047118915446
+destination,2A Rue de Normandie-Niemen,38151,Échirolles,45.14182937706734,5.718512599930496
+destination,3 Rue des Engenières,38474,Sassenage,45.221651255209366,5.658917125627722
+destination,20bis Avenue de la Libération,38111,Claix,45.11433826469047,5.6900105574814015
+destination,Chemin du Vard,38188,Herbeys,45.14512519166362,5.779961663698647
+destination,Montée des Allières,38334,Revel,45.189924195942886,5.874913296996297
+destination,162 Chemin des Plantées,38422,Saint-Martin-d'Uriage,45.14380551078758,5.843714719660597
+destination,914 route de montchaffrey,38528,Vaulnaveys-le-Bas,45.10492879672234,5.820131468673388
+destination,1 Rue Jean Vilar,38151,Échirolles,45.15586066262203,5.731148568893262
+destination,Les Combes,38485,Seyssinet-Pariset,45.17043587415496,5.649498232803787
+destination,42 Route de Biviers,38397,Saint-Ismier,45.244598934894256,5.815577271017867
+destination,39 Quai de la Graille,38185,Grenoble,45.1978361250495,5.714600292100173
+destination,131 Chemin des Pinières,38433,Saint-Nizier-du-Moucherotte,45.168884457238754,5.6497074926214506
+destination,Chemin des Bourrins,38188,Herbeys,45.1390151061824,5.782243660797848
+destination,73 Rue du Rocher,38170,Fontanil-Cornillon,45.245653277789884,5.67161636822443
+destination,55 Rue Luce Douady,38281,Noyarey,45.243846635946376,5.6290004130591615
+destination,21 Route de Chartreuse,38126,Corenc,45.232371584203754,5.753542016996791
+destination,5 Allée des Mitaillères,38229,Meylan,45.20585886669163,5.767641513603967
+destination,14bis avenue de la monta,38382,Saint-Égrève,45.23653897539653,5.6896037128368
+destination,2 Avenue Henri Wallon,38151,Échirolles,45.14804526804212,5.736113892358766
+destination,47 Chemin de la Taillat,38229,Meylan,45.2076392578479,5.78086679744505
+destination,3541 Route de Villard de Lans,38153,Engins,45.190593465770455,5.624848404028249
+destination,97 Chemin du Rivet,38153,Engins,45.175529688637816,5.615252694685681
+destination,3 Chemin de Noyarey,38516,La Tronche,45.20908468055629,5.736042900968923
+destination,20 Route du Peuil,38111,Claix,45.13687104508573,5.668332686284472
+destination,9 Rue du 8 Mai 1945,38474,Sassenage,45.210604750787624,5.672477298808096
+destination,11 Route de la Combe de Champagnier,38151,Échirolles,45.132767587405056,5.717877417218562
+destination,55 avenue de l'ile brune,38382,Saint-Égrève,45.23348656205705,5.667208232274971
+destination,40 Route du Bigot,38421,Saint-Martin-d'Hères,45.16320058726956,5.777387052818671
+destination,4200 Route de la Mearie,38328,Quaix-en-Chartreuse,45.27191757016294,5.739264241287169
+destination,Chemin du Clot,38039,Bernin,45.26361957999118,5.869536859660738
+destination,2 Rue des Grands Champs,38158,Eybens,45.15175515582441,5.746760451260532
+destination,77 Chemin de Retour,38431,Saint-Nazaire-les-Eymes,45.25555640574435,5.848841066639357
+destination,298 Rue Charles Rivoire,38547,Villard-Bonnot,45.240999785447876,5.885205020623815
+destination,40 Rue de la Libération,38179,Gières,45.18573369229255,5.803378164577495
+destination,10 Allée des Genêts,38229,Meylan,45.22099645477103,5.782201111005697
+destination,303 Chemin de l’Enclose,38334,Revel,45.1857969240123,5.862065091692639

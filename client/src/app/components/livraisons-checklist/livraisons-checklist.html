@@ -1,0 +1,60 @@
+<div class="sort-bar">
+    <span class="sort-label">Trier par :</span>
+    <button
+        class="sort-btn"
+        [class.sort-btn--active]="sortField() === 'id'"
+        type="button"
+        (click)="setSortField('id')"
+    >
+        ID
+    </button>
+    <button
+        class="sort-btn"
+        [class.sort-btn--active]="sortField() === 'dateCommande'"
+        type="button"
+        (click)="setSortField('dateCommande')"
+    >
+        Date commande
+    </button>
+</div>
+
+@for (livraison of sorted(); track livraison.id) {
+    <label tuiLabel class="livraison-item"
+        [class.livraison-item--highlighted]="highlightedId() === livraison.id"
+        (mouseenter)="livraisonHovered.emit(livraison.id)"
+        (mouseleave)="livraisonHovered.emit(null)"
+    >
+        <input
+            tuiCheckbox
+            size="s"
+            type="checkbox"
+            [ngModel]="isVisible(livraison.id)"
+            (ngModelChange)="onToggle(livraison.id)"
+        />
+        <span class="livraison-label">
+            <span class="livraison-header">
+                <strong>#{{ livraison.id }}</strong>
+                <span class="livraison-status" [class.livraison-status--livree]="livraison.livree">
+                    {{ livraison.livree ? 'Livrée' : 'En attente' }}
+                </span>
+            </span>
+            <span class="livraison-address">
+                {{ livraison.adresse.numero }} {{ livraison.adresse.rue }},
+                {{ livraison.adresse.ville }}
+            </span>
+            <span class="livraison-meta">
+                @if (livraison.dateCommande) {
+                    <span>{{ livraison.dateCommande }}</span>
+                    <span class="separator">·</span>
+                }
+                <span>{{ livraison.poids }} kg</span>
+                @if (livraison.tempsMontage && livraison.tempsMontage !== 'PT0S') {
+                    <span class="separator">·</span>
+                    <span>{{ formatIsoDuration(livraison.tempsMontage) }} montage</span>
+                }
+            </span>
+        </span>
+    </label>
+} @empty {
+    <p class="empty-state">Aucune livraison trouvée</p>
+}

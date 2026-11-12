@@ -1,0 +1,26 @@
+<div class="popover" [class.popover--pinned]="pinned()">
+    <div class="popover-header">
+        <span class="popover-id">#{{ livraison().id }}</span>
+        <span class="popover-status" [class.popover-status--livree]="livraison().livree">
+            {{ livraison().livree ? 'Livrée' : 'En attente' }}
+        </span>
+        @if (pinned()) {
+            <button class="popover-close" type="button" (click)="close.emit()">×</button>
+        }
+    </div>
+    <div class="popover-address">
+        {{ livraison().adresse.numero }} {{ livraison().adresse.rue }}<br />
+        {{ livraison().adresse.codePostal }} {{ livraison().adresse.ville }}
+    </div>
+    <div class="popover-meta">
+        <span class="popover-weight">{{ livraison().poids }} kg</span>
+        @if (livraison().dateCommande) {
+            <span class="separator">·</span>
+            <span>{{ livraison().dateCommande }}</span>
+        }
+        @if (livraison().tempsMontage && livraison().tempsMontage !== 'PT0S') {
+            <span class="separator">·</span>
+            <span>{{ formatIsoDuration(livraison().tempsMontage) }} montage</span>
+        }
+    </div>
+</div>

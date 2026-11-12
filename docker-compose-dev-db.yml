@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:18
+    ports:
+      - 4209:5432
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: dev
+      POSTGRES_USER: groupe7
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:
+    driver: local

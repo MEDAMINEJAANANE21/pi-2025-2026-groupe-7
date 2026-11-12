@@ -1,0 +1,47 @@
+name: Frontend Tests Only
+
+on:
+  push:
+    paths:
+      - 'client/**'
+      - '.github/workflows/frontend-test.yml'
+#   pull_request:
+#     paths:
+#       - 'client/**'
+
+jobs:
+  test:
+    name: Test Angular Application
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: client/package-lock.json
+
+    - name: Install dependencies
+      working-directory: ./client
+      run: npm ci
+
+    - name: Create ORS API key file
+      working-directory: ./client
+      run: echo "export const orsKey = '';" > src/app/services/orsKey.ts
+
+    - name: Run linter
+      working-directory: ./client
+      run: npm run ng lint || echo "Linting not configured"
+      continue-on-error: true
+
+    - name: Build application
+      working-directory: ./client
+      run: npm run build -- --configuration production
+
+    - name: Run unit tests
+      working-directory: ./client
+      run: npm test -- --watch=false --code-coverage --browsers=ChromeHeadless

@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # OSM data downloader - downloads data at build time
+  osm-downloader:
+    build:
+      context: ./osm-downloader
+      dockerfile: Dockerfile
+      args:
+        # Change this URL to download different regions from http://download.geofabrik.de/
+        # Europe/France: http://download.geofabrik.de/europe/france-latest.osm.pbf
+        # Europe/France/Rhône-Alpes: http://download.geofabrik.de/europe/france/rhone-alpes-latest.osm.pbf
+        - OSM_URL=http://download.geofabrik.de/europe/france/rhone-alpes-latest.osm.pbf
+        - OSM_FILENAME=example-heidelberg.test.pbf
+    container_name: osm-downloader
+    volumes:
+      - ./ors/files:/data
+    environment:
+      - OSM_FILENAME=example-heidelberg.test.pbf
+    restart: "no"
+
+  ors:
+    image: openrouteservice/openrouteservice:latest
+    container_name: ors-app
+    ports:
+      - "0.0.0.0:8080:8082"
+    volumes:
+      - ./ors/graphs:/home/ors/graphs
+      - ./ors/elevation_cache:/home/ors/elevation_cache
+      - ./ors/config:/home/ors/config
+      - ./ors/logs:/home/ors/logs
+      - ./ors/files:/home/ors/files
+    environment:
+      # Set to True on first run or when changing OSM data
+      - REBUILD_GRAPHS=True
+      - CONTAINER_LOG_LEVEL=INFO
+      # OSM data file to use - must match OSM_FILENAME from osm-downloader
+      - BUILD_GRAPHS=true
+      - ORS_CONFIG_LOCATION=/home/ors/config/config.yml
+      # Memory settings - increase for larger regions
+      # For France: XMX=8g or more
+      # For Rhône-Alpes: XMX=4g
+      # For small regions: XMX=2g
+      - XMS=1g
+      - XMX=4g
+    restart: unless-stopped
+    depends_on:
+      osm-downloader:
+        condition: service_completed_successfully
+    networks:
+      - ors-network
+
+  vroom:
+    image: ghcr.io/vroom-project/vroom-docker:latest
+    container_name: vroom-app
+    ports:
+      - "0.0.0.0:3000:3000"
+    environment:
+      - VROOM_ROUTER=ors
+      - ORS_URL=http://ors-app:8082/ors/v2
+    volumes:
+      - ./vroom/conf:/conf
+    depends_on:
+      - ors
+    restart: unless-stopped
+    networks:
+      - ors-network
+
+networks:
+  ors-network:
+    driver: bridge

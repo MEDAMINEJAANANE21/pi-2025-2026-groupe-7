@@ -1,0 +1,42 @@
+<div class="solutions-table" tuiSurface="floating">
+  <table tuiTable>
+    <thead>
+      <tr tuiThGroup>
+        <th tuiTh rowspan="2">ID</th>
+        <th tuiTh rowspan="2" (click)="toggleSort('nbVehicules')" class="sortable">Véhicules</th>
+        <th tuiTh rowspan="2" (click)="toggleSort('nbLivraisonsTotal')" class="sortable">Livraisons</th>
+        <th tuiTh rowspan="2" (click)="toggleSort('distanceTotal')" class="sortable">Distance</th>
+        <th tuiTh rowspan="2" (click)="toggleSort('carburantTotal')" class="sortable">Gaz</th>
+        <th tuiTh colspan="3" class="group-header">Temps</th>
+        <th tuiTh rowspan="2">Actions</th>
+      </tr>
+      <tr tuiThGroup>
+        <th tuiTh (click)="toggleSort('tempsTotalMin')" class="sortable">Min</th>
+        <th tuiTh (click)="toggleSort('tempsTotalMax')" class="sortable">Max</th>
+        <th tuiTh (click)="toggleSort('tempsTotal')" class="sortable">Total</th>
+      </tr>
+    </thead>
+    <tbody tuiTbody>
+      @for (solution of sortedSolutions(); track solution.id) {
+      <tr tuiTr>
+        <td tuiTd class="solution-id">{{ solution.id }}</td>
+        <td tuiTd>{{ solution.nbVehicules }}</td>
+        <td tuiTd>{{ formatNumber(solution.nbLivraisonsTotal) }}</td>
+        <td tuiTd><app-value-distance [meters]="solution.distanceTotal"></app-value-distance></td>
+        <td tuiTd><app-value-fuel [ml]="solution.carburantTotal"></app-value-fuel></td>
+        <td tuiTd><app-value-duration [value]="solution.tempsTotalMin"></app-value-duration></td>
+        <td tuiTd><app-value-duration [value]="solution.tempsTotalMax"></app-value-duration></td>
+        <td tuiTd><app-value-duration [value]="solution.tempsTotal"></app-value-duration></td>
+        <td tuiTd>
+          <a tuiButton appearance="secondary" [routerLink]="['/solutions', solution.id]">Ouvrir</a>
+          @if (solution.id === solutionChoisieId) {
+            <span tuiButton appearance="success" disabled>Choisie</span>
+          } @else {
+            <button tuiButton appearance="primary" (click)="choisirSolution.emit(solution.id)">Choisir</button>
+          }
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>

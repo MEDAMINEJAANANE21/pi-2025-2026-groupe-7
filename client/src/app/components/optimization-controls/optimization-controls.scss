@@ -1,0 +1,15 @@
+.cols-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.input--vehicules {
+    grid-column: 1 / -1;
+}

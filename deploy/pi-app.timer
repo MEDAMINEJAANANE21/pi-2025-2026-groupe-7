@@ -1,0 +1,13 @@
+[Unit]
+Description=Poll git main every second and deploy if changed
+Requires=pi-app.service
+
+[Timer]
+OnBootSec=30
+OnUnitInactiveSec=60s
+AccuracySec=100ms
+Unit=pi-app.service
+Persistent=true
+
+[Install]
+WantedBy=timers.target

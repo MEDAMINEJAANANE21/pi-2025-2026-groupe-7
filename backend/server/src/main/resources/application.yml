@@ -1,0 +1,12 @@
+spring:
+    config:
+        import:
+            - optional:file:./.env[.properties]
+    datasource:
+        username: ${DB_USERNAME:postgres}
+        password: ${DB_PASSWORD:postgres}
+        url: ${DB_URL:jdbc:postgresql://localhost:5432/local}
+    jpa:
+        database-platform: org.hibernate.dialect.PostgreSQLDialect
+        hibernate:
+            ddl-auto: ${DB_JPA_DDL_AUTO:create-drop}

@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:18
+    ports:
+      - 4208:5432
+    restart: always
+    env_file:
+      - path: ${HOME}/pi.prod.env
+        required: false
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-prod}
+      POSTGRES_USER: ${POSTGRES_USER:-groupe7}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  app:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - 8081:8080
+    restart: always
+    depends_on:
+      - postgres
+    env_file:
+      - path: ${HOME}/pi.prod.env
+        required: false
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-prod}
+      DB_USERNAME: ${POSTGRES_USER:-groupe7}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      DB_JPA_DDL_AUTO: ${DB_JPA_DDL_AUTO:-update}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      OPENAPI_SERVER_URL: ${OPENAPI_SERVER_URL:-http://129.88.210.65:8080}
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports:
+      - 8080:8080
+    restart: always
+    depends_on:
+      - app
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  postgres_data:
+    driver: local

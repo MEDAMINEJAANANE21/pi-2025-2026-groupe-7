@@ -1,0 +1,78 @@
+name: Update Database Schema
+
+on:
+  workflow_dispatch:
+    inputs:
+      jpa-ddl-auto:
+        description: "Value for spring.jpa.hibernate.ddl-auto"
+        required: true
+        default: update
+        type: choice
+        options:
+          - none
+          - validate
+          - update
+          - create
+          - create-drop
+
+jobs:
+  update-schema:
+    name: Apply Hibernate Schema Updates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build application
+        working-directory: ./backend
+        run: mvn package -DskipTests -B
+
+      - name: Apply schema update
+        env:
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_JPA_DDL_AUTO: ${{ inputs.jpa-ddl-auto }}
+        run: |
+          JAR=$(ls backend/server/target/*.jar | grep -v 'original' | head -1)
+          echo "Starting application from: $JAR"
+
+          java -jar "$JAR" &
+          APP_PID=$!
+
+          echo "Waiting for application to become healthy (up to 60s)..."
+          for i in $(seq 1 30); do
+            STATUS=$(curl -s http://localhost:8080/actuator/health | grep -o '"status":"[^"]*"' | head -1 || true)
+            if echo "$STATUS" | grep -q '"status":"UP"'; then
+              echo "Application is UP — schema update applied successfully"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "ERROR: Application did not become healthy within 60 seconds"
+              kill "$APP_PID" 2>/dev/null || true
+              exit 1
+            fi
+            echo "  attempt $i/30 — $STATUS"
+            sleep 2
+          done
+
+          echo "Stopping application..."
+          kill "$APP_PID"
+          wait "$APP_PID" 2>/dev/null || true
+          echo "Done."
