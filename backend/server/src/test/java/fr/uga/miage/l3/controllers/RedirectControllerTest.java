@@ -38,5 +38,17 @@ class RedirectControllerTest {
 
         assertThat(rootBody).isEqualTo(indexHtmlBody);
     }
+
+    @Test
+    void lesRoutesAngularRenvoientAussiIndexHtml() {
+        for (String route : new String[]{"/journees/2026-11-12", "/solutions/4/tournees/7/feuille-de-route", "/livraisons", "/equipe"}) {
+            webClient.get()
+                    .uri(route)
+                    .exchange()
+                    .expectStatus().isOk()
+                    .expectBody(String.class)
+                    .value(body -> assertThat(body).contains("CyberCommandes"));
+        }
+    }
 }
 

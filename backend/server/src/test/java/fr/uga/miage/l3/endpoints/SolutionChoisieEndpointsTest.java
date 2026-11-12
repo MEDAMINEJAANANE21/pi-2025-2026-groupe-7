@@ -90,7 +90,7 @@ public class SolutionChoisieEndpointsTest {
         void testChoisirSolution_solutionInexistante() {
             ErrorDTO expected = new ErrorDTO(
                 "/api/solutions/99999/choisie",
-                "Solution not found"
+                "Solution introuvable : 99999"
             );
             webClient.put()
                 .uri("/api/solutions/99999/choisie")

@@ -107,7 +107,7 @@ public class SolutionGenerationEndpointsTest {
      *   <li>GENETIC / NONE / 1 vehicle</li>
      *   <li>GREEDY / NONE / 1 vehicle</li>
      * </ol>
-     * ANGULAR, KMEDOIDS and DBSCAN separations are skipped because they require
+     * ANGULAR and KMEDOIDS separations are skipped because they require
      * {@code nbVehicules > 1}.  Each strategy places all destinations in one group
      * (NONE separation), so every resulting solution must cover all livraisons.
      */
@@ -271,11 +271,6 @@ public class SolutionGenerationEndpointsTest {
      *   <li>ANGULAR|KMEDOIDS / VROOM|GENETIC|GREEDY / 3, 2  (2 sep × 3 opt × 2 = 12)</li>
      * </ul>
      * Total: 3 + 1 + 1 + 12 = 17.
-     *
-     * <p>Note: DBSCAN is intentionally excluded from automatic strategy expansion because it
-     * is density-based and ignores the {@code nbGroups} hint, collapsing to the same
-     * clustering regardless of the requested vehicle count and producing non-deterministic
-     * results. It can still be requested explicitly via the API.
      */
     @Nested
     class ThreeVehiclesStrategyExpansionTest {
@@ -354,11 +349,6 @@ public class SolutionGenerationEndpointsTest {
      *   <li>ANGULAR|KMEDOIDS / VROOM|GENETIC|GREEDY / 5, 4, 3, 2  (2×3×4 = 24)</li>
      * </ul>
      * Total: 5 + 1 + 1 + 24 = 31.
-     *
-     * <p>Note: DBSCAN is intentionally excluded from automatic strategy expansion because it
-     * is density-based and ignores the {@code nbGroups} hint, collapsing to the same
-     * clustering regardless of the requested vehicle count and producing non-deterministic
-     * results. It can still be requested explicitly via the API.
      */
     @Nested
     class FiveVehiclesStrategyExpansionTest {

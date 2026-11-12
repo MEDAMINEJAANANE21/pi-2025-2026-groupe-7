@@ -94,7 +94,7 @@ public class JourneeEndpointsTest {
         void testInvalidDate() {
             ErrorDTO expected = new ErrorDTO(
                 "/api/journees/toto",
-                "Invalid date format, expected yyyy-MM-dd"
+                "Date invalide : 'toto' (format attendu : yyyy-MM-dd)"
             );
             webClient.get()
                 .uri("/api/journees/toto")

@@ -16,6 +16,7 @@ import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.time.LocalDate;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -131,21 +133,14 @@ public class LivraisonEndpointsTest {
         }
 
         @Test
-        void testLivraisonsMissingAdresse() {
-            LivraisonEntity livraison = livraisonRepository.save(LivraisonEntity.builder()
+        void livraisonSansAdresseEstRefuseeParLaBase() {
+            LivraisonEntity sansAdresse = LivraisonEntity.builder()
                 .reference("LIV-NO-ADRESSE")
                 .poids(12.0)
-                .build());
+                .build();
 
-            webClient.get()
-                .uri("/api/livraisons")
-                .exchange()
-                .expectStatus().isNotFound()
-                .expectBody(ErrorDTO.class)
-                .isEqualTo(new ErrorDTO(
-                    "/api/livraisons",
-                    "Error fetching livraisons: Adresse missing for livraison " + livraison.getId()
-                ));
+            assertThatThrownBy(() -> livraisonRepository.saveAndFlush(sansAdresse))
+                .isInstanceOf(DataIntegrityViolationException.class);
         }
     }
 

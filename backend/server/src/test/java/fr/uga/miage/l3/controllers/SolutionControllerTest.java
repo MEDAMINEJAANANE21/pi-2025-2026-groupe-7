@@ -126,7 +126,7 @@ class SolutionControllerTest {
         @Test
         void shouldReturn404WhenSolutionDoesNotExist() {
             String uri = "/api/solutions/999999";
-            ErrorDTO expectedError = new ErrorDTO(uri, "Solution not found: 999999");
+            ErrorDTO expectedError = new ErrorDTO(uri, "Solution introuvable : 999999");
 
             webClient.get()
                     .uri(uri)
@@ -315,7 +315,7 @@ class SolutionControllerTest {
             String uri = "/api/solutions";
             ErrorDTO expectedError = new ErrorDTO(
                     uri,
-                    "Invalid date format: 'not-a-date'. Expected ISO-8601 (example: 2026-04-19)"
+                    "Date invalide : 'not-a-date' (format attendu : yyyy-MM-dd)"
             );
 
             webClient.post()
@@ -333,7 +333,7 @@ class SolutionControllerTest {
             String uri = "/api/solutions";
             ErrorDTO expectedError = new ErrorDTO(
                     uri,
-                    "maxTempsParVehicule must use ISO-8601 duration format (example: PT2H30M)"
+                    "maxTempsParVehicule doit être une durée ISO-8601 (ex. PT2H30M)"
             );
 
             webClient.post()
