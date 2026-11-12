@@ -1,5 +1,5 @@
 [Unit]
-Description=Poll git main every second and deploy if changed
+Description=Poll git main every minute and deploy if changed
 Requires=pi-app.service
 
 [Timer]
