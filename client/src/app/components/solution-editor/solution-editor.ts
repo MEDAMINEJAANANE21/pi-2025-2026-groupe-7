@@ -1,7 +1,6 @@
 import { Component, computed, effect, ElementRef, inject, signal, ChangeDetectionStrategy, input, output, untracked } from '@angular/core';
-import { TuiButton, TuiDialog, TuiTitle, TuiAppearance, TuiSurface } from '@taiga-ui/core';
+import { TuiAppearance, TuiButton, TuiDialog } from '@taiga-ui/core';
 import { TuiAccordion } from '@taiga-ui/kit';
-import { TuiCardMedium } from '@taiga-ui/layout';
 import { Adresse } from '../../models/adresse';
 import { LivraisonResponse, TourneeStatisticsResponse } from '../../models/backend';
 import { formatIsoDuration, addIsoDurations } from '../../utils/duration';
@@ -25,9 +24,6 @@ type Tournee = readonly LivraisonResponse[];
     TuiButton,
     TuiDialog,
     TuiAccordion,
-    TuiCardMedium,
-    TuiTitle,
-    TuiSurface,
     TuiAppearance,
   ],
   templateUrl: './solution-editor.html',
@@ -37,7 +33,7 @@ export class SolutionEditor {
   public readonly routes = input<readonly Tournee[]>([]);
   public readonly parking = input<Adresse | null>(null);
   public readonly hiddenTournees = input<ReadonlySet<number>>(new Set());
-  public readonly horseSolutionLivraisons = input<readonly LivraisonResponse[]>([]);
+  public readonly horsSolutionLivraisons = input<readonly LivraisonResponse[]>([]);
   public readonly missingLivraisonsHidden = input<boolean>(false);
   public readonly tourneeStats = input<readonly (TourneeStatisticsResponse | null)[]>([]);
   public readonly highlightedId = input<number | null>(null);
@@ -105,7 +101,7 @@ export class SolutionEditor {
         const idx = this.routes().findIndex(r => r.some(l => l.id === id));
         if (idx !== -1) {
           this.openTournees.update(m => new Map(m).set(idx, true));
-        } else if (this.horseSolutionLivraisons().some(l => l.id === id)) {
+        } else if (this.horsSolutionLivraisons().some(l => l.id === id)) {
           this.missingOpen.set(true);
         }
         // Wait for accordion animation before scrolling (~300ms for TuiAccordion).
@@ -270,7 +266,7 @@ export class SolutionEditor {
     const newRoutes = this.routes().map(r => [...r]);
     newRoutes[routeIndex].splice(jobIndex, 1);
     this.onUpdateRoutes(newRoutes);
-    this.onUpdateMissingLivraisons.emit([...this.horseSolutionLivraisons(), livraison]);
+    this.onUpdateMissingLivraisons.emit([...this.horsSolutionLivraisons(), livraison]);
   }
 
   protected openAssignMissingDialog(livraison: LivraisonResponse): void {
@@ -285,7 +281,7 @@ export class SolutionEditor {
       newRoutes[tourneeIndex] = [...newRoutes[tourneeIndex], livraison];
       this.onUpdateRoutes(newRoutes);
       this.onUpdateMissingLivraisons.emit(
-        this.horseSolutionLivraisons().filter(l => l.id !== livraison.id)
+        this.horsSolutionLivraisons().filter(l => l.id !== livraison.id)
       );
     }
     observer.complete();

@@ -117,7 +117,7 @@
                         [routes]="localTournees()"
                         [parking]="parking()"
                         [hiddenTournees]="hiddenTournees()"
-                        [horseSolutionLivraisons]="horseSolutionLivraisons()"
+                        [horsSolutionLivraisons]="horsSolutionLivraisons()"
                         [missingLivraisonsHidden]="missingLivraisonsHidden()"
                         [tourneeStats]="currentTourneeStats()"
                         [highlightedId]="highlightedLivraisonId()"
@@ -125,7 +125,7 @@
                         (onUpdate)="onUpdateTournees($event)"
                         (onToggleVisibility)="toggleTourneeVisibility($event)"
                         (onToggleMissingVisibility)="toggleMissingVisibility()"
-                        (onUpdateMissingLivraisons)="onUpdateHorseSolution($event)"
+                        (onUpdateMissingLivraisons)="onUpdateHorsSolution($event)"
                         (livraisonHovered)="highlightedLivraisonId.set($event)">
                     </app-solution-editor>
                 }

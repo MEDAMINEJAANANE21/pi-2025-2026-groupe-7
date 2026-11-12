@@ -5,7 +5,7 @@
       💡 Glissez les points de livraison pour les réordonner dans une tournée, ou utilisez le bouton « Déplacer vers un véhicule » pour les transférer d'une tournée à l'autre.
     </p>
 
-      @if (horseSolutionLivraisons().length > 0) {
+      @if (horsSolutionLivraisons().length > 0) {
         <tui-accordion-item
           [borders]="null"
           class="missing-section"
@@ -15,7 +15,7 @@
         >
           <header>
             <span class="missing-badge">⚠️ Livraisons manquantes</span>
-            <span class="missing-count">{{ horseSolutionLivraisons().length }}</span>
+            <span class="missing-count">{{ horsSolutionLivraisons().length }}</span>
             <button
               tuiButton
               appearance="ghost"
@@ -28,7 +28,7 @@
           </header>
           <ng-template tuiAccordionItemContent>
             <ul class="missing-livraisons-list">
-              @for (livraison of horseSolutionLivraisons(); track livraison.id) {
+              @for (livraison of horsSolutionLivraisons(); track livraison.id) {
                 <li class="missing-livraison-item"
                   [attr.data-livraison-id]="livraison.id"
                   [class.missing-livraison-item--highlighted]="highlightedId() === livraison.id"

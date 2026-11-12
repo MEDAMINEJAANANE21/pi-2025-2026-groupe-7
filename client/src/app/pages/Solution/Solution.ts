@@ -1,25 +1,33 @@
 import { TuiButton, TuiLabel, TuiLoader } from '@taiga-ui/core';
 import { AppBreadcrumbsComponent } from '../../components/app-breadcrumbs/app-breadcrumbs';
-import { TuiCardMedium } from "@taiga-ui/layout";
+import { TuiCardMedium } from '@taiga-ui/layout';
 import { TuiCheckbox } from '@taiga-ui/kit';
 import { Component, computed, inject, signal, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RoutesMap } from "../../components/RoutesMap/RoutesMap";
-import { Coords } from "../../models/coords";
-import { SolutionEditor } from "../../components/solution-editor/solution-editor";
-import { BackendApiService } from "../../services/BackendApiService";
+import { RoutesMap } from '../../components/RoutesMap/RoutesMap';
+import { SolutionEditor } from '../../components/solution-editor/solution-editor';
+import { BackendApiService } from '../../services/BackendApiService';
 import { ActivatedRoute } from '@angular/router';
 import { Adresse, AdresseWithMeta } from '../../models/adresse';
 import { Route } from '../../models/route';
 import { ROUTE_COLORS } from '../../utils/routeColors';
-import { LivraisonResponse, StrategieResponse, SolutionTourneesUpdateRequest, TourneeStatisticsResponse } from '../../models/backend';
+import {
+  LivraisonResponse,
+  SolutionStatisticsResponse,
+  SolutionTourneesUpdateRequest,
+  TourneeStatisticsResponse,
+} from '../../models/backend';
 import { ParsedSolutionResponse } from '../../models/parsedSolutionResponse';
 import { ValueDurationComponent } from '../../components/value-duration/value-duration';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, merge, forkJoin, from, EMPTY, debounceTime, switchMap, finalize, catchError } from 'rxjs';
 import { formatIsoDuration } from '../../utils/duration';
+import { formatNumber } from '../../utils/format';
+import { toAdresse } from '../../utils/adresse';
 
 type Tournee = readonly LivraisonResponse[];
+
+const AUTO_REDRAW_DELAY_MS = 15_000;
 
 @Component({
   selector: 'app-solution',
@@ -57,8 +65,8 @@ export class Solution {
 
   // Server state
   protected readonly parking = signal<Adresse | null>(null);
-  protected readonly horseSolutionLivraisons = signal<readonly LivraisonResponse[]>([]);
-  protected readonly date = signal<String | null>(null);
+  protected readonly horsSolutionLivraisons = signal<readonly LivraisonResponse[]>([]);
+  protected readonly date = signal<string | null>(null);
   protected readonly solution = signal<ParsedSolutionResponse | null>(null);
   protected readonly routes = signal<Route[]>([]);
   protected readonly tourneeIds = signal<number[]>([]);
@@ -79,7 +87,7 @@ export class Solution {
   });
 
   protected readonly currentTourneeStats = computed<readonly (TourneeStatisticsResponse | null)[]>(() =>
-    (this.solution()?.tourneeStatistics ?? []).map(t => (t.statistiques as TourneeStatisticsResponse) ?? null)
+    (this.solution()?.tourneeStatistics ?? []).map(t => t.statistiques ?? null),
   );
 
   protected readonly visibleDestinations = computed<readonly AdresseWithMeta[]>(() => {
@@ -87,23 +95,18 @@ export class Solution {
     const inSolution = this.localTournees().flatMap((tournee, i) => {
       if (hidden.has(i)) return [];
       const color = ROUTE_COLORS[i % ROUTE_COLORS.length];
-      return tournee.map(l => ({ ...this._livraisonToAdresse(l), color, livraison: l }));
+      return tournee.map(l => ({ ...toAdresse(l.adresse), color, livraison: l }));
     });
     const hors: AdresseWithMeta[] = this.missingLivraisonsHidden()
       ? []
-      : this.horseSolutionLivraisons().map(l => ({
-          ...this._livraisonToAdresse(l),
+      : this.horsSolutionLivraisons().map(l => ({
+          ...toAdresse(l.adresse),
           horsSolution: true as const,
           livraison: l,
         }));
     return [...inSolution, ...hors];
   });
 
-
-protected readonly bounds = signal<readonly [Coords, Coords]>([
-    { lat: 45.1, lng: 5.6 },
-    { lat: 45.3, lng: 5.9 },
-  ]);
   protected readonly hidePins = signal<boolean>(false);
   protected readonly highlightedLivraisonId = signal<number | null>(null);
   protected readonly pinnedLivraisonId = signal<number | null>(null);
@@ -117,10 +120,10 @@ protected readonly bounds = signal<readonly [Coords, Coords]>([
   constructor() {
     this.solutionId = this._route.snapshot.paramMap.get('solutionId');
 
-    // RxJS pipeline: redraw routes on manual trigger or 15s after the last edit
+    // Waiting after the last edit avoids one routing call per drag-and-drop.
     merge(
       this._manualRedrawSubject,
-      this._routeEditSubject.pipe(debounceTime(15000)),
+      this._routeEditSubject.pipe(debounceTime(AUTO_REDRAW_DELAY_MS)),
     )
       .pipe(
         switchMap(() => {
@@ -175,22 +178,13 @@ protected readonly bounds = signal<readonly [Coords, Coords]>([
           this.localTournees.set(solution.tournees);
 
           if (livraisons) {
-            this.horseSolutionLivraisons.set(livraisons.horsSolution);
+            this.horsSolutionLivraisons.set(livraisons.horsSolution);
           }
           this._manualRedrawSubject.next();
         })
         .catch(error => console.error('Error fetching solution:', error))
         .finally(() => this._stopLoading());
     }
-  }
-
-  private _livraisonToAdresse(l: LivraisonResponse): Adresse {
-    return {
-      coords: l.adresse.coordonnees,
-      name: `${l.adresse.numero} ${l.adresse.rue}`.trim(),
-      postCode: l.adresse.codePostal,
-      city: l.adresse.ville,
-    };
   }
 
   private _startLoading(): void {
@@ -207,21 +201,17 @@ protected readonly bounds = signal<readonly [Coords, Coords]>([
     return this.solution()?.tournees?.length ?? 0;
   }
 
-  protected getStat(key: string): any {
-    const s = this.solution()?.statistiques;
-    return s ? (s[key] ?? null) : null;
+  protected getStat<K extends keyof SolutionStatisticsResponse>(
+    key: K,
+  ): SolutionStatisticsResponse[K] | null {
+    return this.solution()?.statistiques?.[key] ?? null;
   }
 
   protected getStrategieNbVehicules(): number | null {
-    const s = this.solution()?.strategie as StrategieResponse | null | undefined;
-    return s?.nbVehicules ?? null;
+    return this.solution()?.strategie?.nbVehicules ?? null;
   }
 
-  protected formatNumber(value: number | null | undefined): string {
-    if (value === null || value === undefined) return '—';
-    return Number.isFinite(value) ? (value % 1 === 0 ? value.toString() : value.toFixed(1)) : '—';
-  }
-
+  protected readonly formatNumber = formatNumber;
   protected readonly formatIsoDuration = formatIsoDuration;
 
   protected triggerRedraw(): void {
@@ -260,7 +250,7 @@ protected readonly bounds = signal<readonly [Coords, Coords]>([
 
       const livraisons = await this._backend.getSolutionLivraisons(+solutionId);
       if (livraisons) {
-        this.horseSolutionLivraisons.set(livraisons.horsSolution);
+        this.horsSolutionLivraisons.set(livraisons.horsSolution);
       }
     } catch (error) {
       console.error('Error saving solution:', error);
@@ -282,8 +272,8 @@ protected readonly bounds = signal<readonly [Coords, Coords]>([
     this.missingLivraisonsHidden.update(v => !v);
   }
 
-  protected onUpdateHorseSolution(updated: readonly LivraisonResponse[]): void {
-    this.horseSolutionLivraisons.set(updated);
+  protected onUpdateHorsSolution(updated: readonly LivraisonResponse[]): void {
+    this.horsSolutionLivraisons.set(updated);
     this.isDirty.set(true);
   }
 }

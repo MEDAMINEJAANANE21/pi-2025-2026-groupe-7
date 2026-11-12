@@ -1,9 +1,8 @@
+import { HttpErrorResponse, HttpStatusCode } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { PromiseHttpClient } from './PromiseHttpClient';
 import { LatLngTuple } from '../models/LatLngTuple';
-import { Coords } from '../models/coords';
 import {
-  AdresseDtoSchema,
   JourneeResponse,
   JourneeResponseSchema,
   LivraisonResponse,
@@ -18,11 +17,11 @@ import {
   SolutionTourneesUpdateRequest,
   SolutionLivraisonsResponseSchema,
   SolutionLivraisonsResponse,
+  RouteResponseSchema,
 } from '../models/backend';
-import { z } from 'zod';
 import { Adresse } from '../models/adresse';
 import { ParsedSolutionResponse } from '../models/parsedSolutionResponse';
-
+import { toAdresse } from '../utils/adresse';
 
 @Injectable({
   providedIn: 'root',
@@ -38,21 +37,11 @@ export class BackendApiService {
   }
 
   public async getDirections(lngLatCoordinates: ReadonlyArray<LatLngTuple>): Promise<ReadonlyArray<LatLngTuple>> {
-    const response = await this._http.post<{ coordinates?: Array<Coords> }>(
-      this._url('/routes'),
-      { adresses: lngLatCoordinates.map(([lng, lat]) => ({ lat, lng })) }
-    );
-    const coords = response?.coordinates ?? [];
-    return coords.map(c => [c.lng, c.lat]);
-  }
-
-  private _mapAdresse(dto: z.infer<typeof AdresseDtoSchema>): Adresse {
-    return {
-      coords: dto.coordonnees,
-      name: `${dto.numero} ${dto.rue}`.trim(),
-      postCode: dto.codePostal,
-      city: dto.ville,
-    };
+    const response = await this._http.post<unknown>(this._url('/routes'), {
+      adresses: lngLatCoordinates.map(([lng, lat]) => ({ lat, lng })),
+    });
+    const { coordinates } = RouteResponseSchema.parse(response);
+    return coordinates.map(c => [c.lng, c.lat]);
   }
 
   public async getParking(): Promise<Adresse | null> {
@@ -62,7 +51,7 @@ export class BackendApiService {
       console.warn('Invalid parking response', parsed.error);
       return null;
     }
-    return this._mapAdresse(parsed.data.adresse);
+    return toAdresse(parsed.data.adresse);
   }
 
   public async getLivraisons(filters?: {
@@ -93,7 +82,7 @@ export class BackendApiService {
 
   public async getNonDeliveredLivraisons(): Promise<readonly Adresse[]> {
     const livraisons = await this.getLivraisons({ livree: false });
-    return livraisons.map(l => this._mapAdresse(l.adresse));
+    return livraisons.map(l => toAdresse(l.adresse));
   }
 
   public async getJournee(date: string): Promise<JourneeResponse> {
@@ -166,8 +155,12 @@ export class BackendApiService {
     try {
       const response = await this._http.get<unknown>(this._url(`/journees/${date}/solutions/choisie`));
       return SolutionResponseSchema.parse(response);
-    } catch {
-      return null; // 404 means no solution chosen
+    } catch (err) {
+      // 404 is the normal "nothing chosen yet" answer; anything else is a real failure.
+      if (err instanceof HttpErrorResponse && err.status === HttpStatusCode.NotFound) {
+        return null;
+      }
+      throw err;
     }
   }
 
@@ -188,5 +181,4 @@ export class BackendApiService {
     );
     return this._parseSolutionResponse(response);
   }
-
 }

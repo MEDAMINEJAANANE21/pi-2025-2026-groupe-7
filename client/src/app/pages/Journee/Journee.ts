@@ -20,10 +20,15 @@ import {
   LivraisonResponse,
   SolutionStatisticsResponse,
 } from '../../models/backend';
-import { debounceTime, filter, switchMap } from 'rxjs';
+import { filter, switchMap, tap, throttleTime } from 'rxjs';
 import { millisecondsToIsoDuration } from '../../utils/duration';
 import { SolutionsTableComponent } from '../../components/solutions-table/solutions-table';
 import { stompTopic } from '../../utils/stompTopic';
+import { websocketUrl } from '../../utils/websocket';
+import { toAdresse } from '../../utils/adresse';
+import { formatNumber } from '../../utils/format';
+
+const SOLUTIONS_RELOAD_THROTTLE_MS = 3000;
 
 @Component({
   selector: 'app-journee-page',
@@ -90,11 +95,7 @@ export class JourneePage {
   });
 
   protected readonly formatIsoDuration = formatIsoDuration;
-
-  protected formatNumber(value: number | null | undefined): string {
-    if (value == null) return '—';
-    return Number.isFinite(value) ? (value % 1 === 0 ? value.toString() : value.toFixed(1)) : '—';
-  }
+  protected readonly formatNumber = formatNumber;
 
   protected solutionStats(sol: { statistiques?: SolutionStatisticsResponse | null }): SolutionStatisticsResponse | null {
     return sol.statistiques ?? null;
@@ -110,7 +111,7 @@ export class JourneePage {
   );
 
   protected readonly destinations = computed(() =>
-    this.visibleLivraisons().map(l => ({ ...this._mapAdresse(l.adresse), livraison: l })),
+    this.visibleLivraisons().map(l => ({ ...toAdresse(l.adresse), livraison: l })),
   );
 
   constructor() {
@@ -128,16 +129,16 @@ export class JourneePage {
         takeUntilDestroyed(this._destroyRef),
         filter((v): v is string => !!v),
         switchMap((date) =>
-          stompTopic(
-            `ws://${window.location.host}/ws`,
-            `/topic/journee/${date}`,
-            JourneeStatusUpdateSchema,
-          ).pipe(debounceTime(3000)),
+          stompTopic(websocketUrl('/ws'), `/topic/journee/${date}`, JourneeStatusUpdateSchema),
         ),
+        // The status label must react instantly; only the heavier solutions reload is throttled.
+        tap((update) => {
+          const current = this.journeeState();
+          this.journeeState.set({ ...(current ?? { date: update.date, strategie: null }), ...update });
+        }),
+        throttleTime(SOLUTIONS_RELOAD_THROTTLE_MS, undefined, { leading: true, trailing: true }),
       )
-      .subscribe((update) => {
-        const current = this.journeeState();
-        this.journeeState.set({ ...(current ?? { date: update.date, strategie: null }), ...update });
+      .subscribe(() => {
         const date = this.selectedDate();
         if (date) void this._loadSolutions(date);
       });
@@ -156,11 +157,10 @@ export class JourneePage {
     try {
       const backendConfig = {
         nbVehicules: config.nbVehicules,
-        maxTempsParVehicule: millisecondsToIsoDuration(config.maxTimePerVehicule),
+        maxTempsParVehicule: millisecondsToIsoDuration(config.maxTimePerVehiculeMs),
       };
 
-      const livraisonIds = config.livraisonIds ?? [];
-      const updatedJournee = await this._backend.optimizeJournee(date, backendConfig, livraisonIds);
+      const updatedJournee = await this._backend.optimizeJournee(date, backendConfig, config.livraisonIds);
       this.journeeState.set(updatedJournee);
     } catch (err) {
       console.error('Failed to optimize journee', err);
@@ -221,21 +221,6 @@ export class JourneePage {
     } finally {
       this.loading.set(false);
     }
-  }
-
-  private _mapAdresse(dto: {
-    coordonnees: { lat: number; lng: number };
-    rue: string;
-    numero: string;
-    codePostal: string;
-    ville: string;
-  }): Adresse {
-    return {
-      coords: dto.coordonnees,
-      name: `${dto.numero} ${dto.rue}`.trim(),
-      postCode: dto.codePostal,
-      city: dto.ville,
-    };
   }
 
   private async _loadLivraisons(filterParams: {

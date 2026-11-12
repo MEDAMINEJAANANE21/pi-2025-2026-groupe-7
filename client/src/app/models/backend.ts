@@ -135,3 +135,14 @@ export const JourneeStatusUpdateSchema = z.object({
   timestamp: z.string(),
 });
 export type JourneeStatusUpdate = z.infer<typeof JourneeStatusUpdateSchema>;
+
+export const CoordonneeSchema = z.object({
+  lat: z.number(),
+  lng: z.number(),
+});
+export type Coordonnee = z.infer<typeof CoordonneeSchema>;
+
+export const RouteResponseSchema = z.object({
+  coordinates: z.array(CoordonneeSchema),
+});
+export type RouteResponse = z.infer<typeof RouteResponseSchema>;
