@@ -1,12 +1,12 @@
 # Développement local.
 #   Base seule       : docker compose -f docker-compose-local.yml up -d postgres
 #   Application prête : docker compose -f docker-compose-local.yml --profile app up --build
-#                      puis http://localhost:8080
+#                      puis http://localhost:8080 (APP_PORT et DB_PORT si ces ports sont pris)
 services:
   postgres:
     image: postgres:18
     ports:
-      - 5432:5432
+      - ${DB_PORT:-5432}:5432
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: postgres
@@ -21,7 +21,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 8080:8080
+      - ${APP_PORT:-8080}:8080
     depends_on:
       - postgres
     environment:

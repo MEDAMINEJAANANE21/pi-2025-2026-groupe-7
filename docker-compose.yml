@@ -1,8 +1,10 @@
+# Déploiement serveur : PostgreSQL + backend + NGINX (qui sert le front et relaie /api).
+# Ports réglables si déjà pris : HTTP_PORT (8080), APP_PORT (8081), DB_PORT (4208).
 services:
   postgres:
     image: postgres:18
     ports:
-      - 4208:5432
+      - ${DB_PORT:-4208}:5432
     restart: always
     env_file:
       - path: ${HOME}/pi.prod.env
@@ -19,7 +21,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     ports:
-      - 8081:8080
+      - ${APP_PORT:-8081}:8080
     restart: always
     depends_on:
       - postgres
@@ -39,7 +41,7 @@ services:
       context: .
       dockerfile: nginx/Dockerfile
     ports:
-      - 8080:8080
+      - ${HTTP_PORT:-8080}:8080
     restart: always
     depends_on:
       - app
