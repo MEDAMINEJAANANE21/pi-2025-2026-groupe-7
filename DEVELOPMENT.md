@@ -77,27 +77,22 @@ docker compose -f docker-compose-local.yml --profile app up --build   # http://l
 
 ## Données d'essai
 
-Le plus simple passe par l'interface : **Livraisons → Données d'essai**. On peut aussi passer
-par l'API :
+Le plus simple : **Livraisons → Jeu d'essai** (ou **Équipe → Jeu d'essai**). Il charge un dépôt à
+Seyssins, 32 livraisons sur de vraies adresses de l'agglomération grenobloise, 6 chauffeurs et
+5 véhicules. Par l'API :
 
 ```bash
-curl -X POST http://localhost:8080/api/data/import \
-  -H "Content-Type: application/json" \
-  -d '{"dataset": "DATASET_50_PAR_3_EXEMPLE_1", "clearBeforeImport": true}'
-
-curl -X POST http://localhost:8080/api/data/generate/livraisons \
-  -H "Content-Type: application/json" -d '{"count": 30}'
+curl -X POST http://localhost:8080/api/data/demo
 ```
 
-Jeux disponibles (`backend/server/src/main/resources/datasets/`) : 50, 100 ou 400 adresses
-autour de Grenoble, avec le dépôt.
+> Le chargement **remplace toutes les données** : livraisons, solutions, journées et équipe.
 
-> L'import **vide les livraisons, les solutions et les journées existantes**.
+Les fichiers sont dans `backend/server/src/main/resources/demo/` (CSV lisibles, faciles à
+modifier). Les dates de commande sont relatives au jour du chargement.
 
-Avec une clé ORS, une optimisation consomme du quota : les matrices sont demandées par blocs de
-50 × 50 points. Les quotas de l'offre gratuite sont dans
-[docs/limites-openrouteservice.md](docs/limites-openrouteservice.md).
-
+Les gros jeux d'adresses bruts (`resources/datasets/`, 50 à 400 adresses avec leurs matrices)
+ne sont plus proposés dans l'interface. Ils servent aux tests d'optimisation et restent
+importables par `POST /api/data/import`.
 ## Tests
 
 ### Backend

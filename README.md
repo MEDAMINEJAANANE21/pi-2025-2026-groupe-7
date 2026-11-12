@@ -27,15 +27,15 @@ feuilles de route des chauffeurs.
 
 | Étape | Ce que fait le planificateur |
 |---|---|
-| **Préparer** | Gère les livraisons (adresse recherchée dans la Base Adresse Nationale, poids, temps de montage) et l'équipe (chauffeurs, véhicules, charge utile, consommation). |
+| **Préparer** | Gère les livraisons (adresse recherchée dans la Base Adresse Nationale, poids, temps de montage) et l'équipe (chauffeurs et véhicules avec photo, charge utile, consommation). |
 | **Optimiser** | Choisit le nombre de véhicules et la durée maximale d'une tournée. L'application génère une solution par stratégie (31 pour 5 véhicules) en arrière-plan et affiche l'avancement en direct. |
 | **Comparer** | Trie les solutions par distance, durée, carburant, coût ou marge, puis retient la meilleure pour la journée. |
 | **Ajuster** | Déplace des livraisons d'une tournée à l'autre par glisser-déposer. Distances, coûts et tracés sont recalculés. |
 | **Affecter** | Confie chaque tournée à un chauffeur et à un véhicule. Un même chauffeur ne peut pas conduire deux tournées, et un chargement trop lourd est refusé. |
 | **Livrer** | Imprime la feuille de route ou l'exporte en CSV, puis clôture la tournée : ses livraisons passent à « livrée ». |
 
-Le **calendrier** sert de page d'accueil. Il montre les journées déjà optimisées et celles dont la
-solution est retenue.
+Une **page d'accueil** présente l'application. Le **calendrier** montre les journées déjà optimisées
+et celles dont la solution est retenue.
 
 <table>
   <tr>
@@ -69,9 +69,9 @@ cd pi-2025-2026-groupe-7
 docker compose -f docker-compose-local.yml --profile app up --build
 ```
 
-Ouvrez http://localhost:8080. Dans **Livraisons**, cliquez sur **Données d'essai** et importez un
-jeu de 50 adresses autour de Grenoble. Générez ensuite quelques livraisons. Ouvrez enfin
-**Aujourd'hui** et lancez l'optimisation.
+Ouvrez http://localhost:8080. Dans **Livraisons**, cliquez sur **Jeu d'essai** : 32 livraisons autour
+de Grenoble, 6 chauffeurs et 5 véhicules sont chargés. Ouvrez ensuite **Aujourd'hui** et lancez
+l'optimisation.
 
 > **Sans clé OpenRouteService**, l'application passe en *mode estimation* : les distances sont
 > calculées à vol d'oiseau (avec un facteur de détour), et le moteur VROOM n'est pas proposé.
@@ -191,9 +191,9 @@ glisser-déposer. Le [rapport technique d'origine](docs/rapport-technique.md) d�
   - recharger une page profonde donnait une erreur 404 en production ;
   - une optimisation interrompue par un redémarrage bloquait la journée pour toujours ;
   - le seuil de couverture n'était en réalité jamais vérifié.
-- *Fonctionnalités* : saisie et modification des livraisons, gestion de l'équipe, affectation
+- *Fonctionnalités* : page d'accueil, saisie et modification des livraisons, équipe avec photos, affectation
   des tournées, coûts et marges, clôture des tournées, feuille de route imprimable et export CSV,
-  calendrier, mode estimation sans clé d'API.
+  calendrier, jeu d'essai en un clic, mode estimation sans clé d'API.
 - *Interface* : refonte complète. Un design system sobre remplace Taiga UI, et le bundle
   initial passe sous 90 ko compressés.
 - *Tests* : tests unitaires des algorithmes, tests de toutes les nouvelles routes, couverture

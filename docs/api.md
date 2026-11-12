@@ -87,6 +87,9 @@ Corps d'une livraison :
 | PUT, DELETE | `/chauffeurs/{id}` | Modification, suppression (les tournées perdent leur affectation) |
 | GET, POST | `/vehicules` | Liste et création (immatriculation unique, mise en majuscules) |
 | PUT, DELETE | `/vehicules/{id}` | Modification, suppression |
+| PUT | `/chauffeurs/{id}/photo`, `/vehicules/{id}/photo` | Envoie une photo (multipart, champ `photo` ; JPEG, PNG ou WebP, 3 Mo au plus) |
+| GET | `/chauffeurs/{id}/photo`, `/vehicules/{id}/photo` | Image ; l'adresse fournie dans `photoUrl` change à chaque nouvelle photo |
+| DELETE | `/chauffeurs/{id}/photo`, `/vehicules/{id}/photo` | Retire la photo |
 
 ## Cartographie et données
 
@@ -94,7 +97,8 @@ Corps d'une livraison :
 |---|---|---|
 | GET | `/parkings` | Adresse du dépôt |
 | POST | `/routes` | Tracé routier passant par une liste de points (lignes droites en mode estimation) |
-| GET | `/data` | Jeux d'essai disponibles |
+| POST | `/data/demo` | Charge le jeu d'essai : dépôt, 32 livraisons, 6 chauffeurs, 5 véhicules. **Remplace toutes les données** |
+| GET | `/data` | Jeux d'adresses bruts (utilisés par les tests) |
 | POST | `/data/import` | Importe un jeu d'adresses. **Vide les livraisons, solutions et journées existantes** |
 | POST | `/data/generate/livraisons` | Génère `count` livraisons aléatoires sur les adresses importées |
 
