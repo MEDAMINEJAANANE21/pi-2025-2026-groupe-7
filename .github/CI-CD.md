@@ -8,9 +8,10 @@ Ce document décrit les workflows CI/CD actuellement utilisés dans le dépôt.
 Fichier : `.github/workflows/ci.yml`
 
 Déclenchement :
-- push sur `main`
-- pull request vers `main`
-- déclenchement manuel
+- déclenchement manuel uniquement (onglet *Actions* → *Run workflow*)
+
+> Les déclencheurs `push` et `pull_request` sont commentés dans `ci.yml`. Les workflows
+> frontend et backend ci-dessous couvrent déjà chaque push.
 
 Jobs :
 - `test-frontend`
@@ -25,7 +26,7 @@ Jobs :
   - compilation/tests/package dans `backend/`
   - publication du JAR
 - `build-docker`
-  - exécuté uniquement sur push sur `main`
+  - exécuté uniquement sur la branche `main`
   - build de l'image Docker de production (frontend + backend)
   - lancement rapide d'un conteneur de vérification
 
@@ -66,7 +67,7 @@ npm run build
 
 ### Backend
 ```bash
-./mvnw -f backend/pom.xml clean test
+./mvnw -f backend/pom.xml clean verify   # tests + couverture 100 %
 ./mvnw -f backend/pom.xml package
 ```
 
@@ -80,3 +81,5 @@ docker build -t projet-integrateur:test .
 - Le dossier frontend du dépôt est `client/`.
 - Le backend s'exécute avec Java 21.
 - En production, l'image Docker contient frontend + backend, et la base PostgreSQL est externe (cloud).
+- Le workflow `db-update-schema.yml` (manuel) a besoin des secrets de connexion à la base de
+  production. Sans eux, il échoue.

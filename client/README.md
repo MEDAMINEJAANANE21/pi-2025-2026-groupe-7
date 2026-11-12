@@ -1,77 +1,58 @@
-# Projet Intégrateur Frontend
+# Rapport technique
 
-- Bibliothèque UI - https://taiga-ui.dev/components/actions-bar
-- **Production** : https://l3miage-projet-integrateur-g7.onrender.com/
+Ce document explique les choix techniques du projet : organisation, données, algorithmes
+d'optimisation et éditeur de solution. Pour installer et lancer le projet, voir le
+[README](../README.md) et le [guide de développement](../DEVELOPMENT.md).
 
-## ProjetDataSynthesis
+- Bibliothèque UI : [Taiga UI](https://taiga-ui.dev/)
+- Démo (déploiement du groupe) : https://l3miage-projet-integrateur-g7.onrender.com/
 
-Cette amorce de code est destinée à être utilisée pour :
+## Organisation du Projet
 
-1. Synthétiser des listes d'adresses
-2. Illustrer l'usage de l'API gouvernementale d'adresses (https://api-adresse.data.gouv.fr/)
-3. Illustrer l'usage de l'API openRouteService (https://openrouteservice.org/)
-4. Illustrer l'usage de ZOD comme outil de validation de données (https://zod.dev/)
-
-### Notes
-
-Le code source n'est pas destiné à être réutilisé tel quel, mais plutôt à servir de source d'inspiration pour vos projets.
-
-Afin de ne pas dépasser les limites d'utilisation des API, les données récupérées sont stockées autant que possible dans localStorage (https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) et réutilisées lors des exécutions suivantes. Dans le cas de votre projet, ces données pourraient être stockées côté serveur.
-
-### Suggestions
-
-* Explorer la récupération des matrices de distances et de temps de parcours entre les adresses synthétisées, en utilisant l'API openRouteService.
-* Utiliser ZOD pour valider les données récupérées des API, en s'assurant qu'elles correspondent aux formats attendus.
-* Explorer des stratégies pour casser les données du problème. Vous devriez être en mesure de gérer des centaines de points de livraisons et une dizaine de véhicules.
-
-## Rapport
-
-### Organisation du Projet
-
-#### Workflow de Développement
+### Workflow de Développement
 
 Le projet utilise une approche collaborative basée sur **GitHub** :
 
-- **Branches & Pull Requests** : Chaque nouvelle fonctionnalité est développée dans une branche dédiée (ex: `feature/nouvelle-fonctionnalite`), puis intégrée via une Pull Request vers la branche `master`
+- **Branches & Pull Requests** : Chaque nouvelle fonctionnalité est développée dans une branche dédiée (ex: `feature/nouvelle-fonctionnalite`), puis intégrée via une Pull Request vers la branche `main`
 - **Code Review** : Les PRs sont revues par les membres de l'équipe avant fusion
-- **Task Tracking** : [GitHub Projects](https://github.com/users/d0rich/projects/8/views/1) est utilisé pour gérer les tâches, suivre l'avancement et organiser le backlog
+- **Task Tracking** : Un tableau GitHub Projects a été utilisé pour gérer les tâches, suivre l'avancement et organiser le backlog
 
-#### CI/CD avec GitHub Actions
+### CI/CD avec GitHub Actions
 
 Le frontend bénéficie d'une intégration continue automatisée via **GitHub Actions** :
 
 **Workflows CI** :
 
-1. **[Frontend Tests](./../.github/workflows/frontend-test.yml)** - Déclenché sur les modifications dans `frontend/`
+1. **[Frontend Tests](./../.github/workflows/frontend-test.yml)** - Déclenché sur les modifications dans `client/`
    - Installation des dépendances (Node.js 20)
    - Exécution du linter
    - Build de l'application
    - Tests unitaires avec Karma + ChromeHeadless
    - Génération du rapport de couverture de code
 
-2. **[CI Principal](./../.github/workflows/ci.yml)** - Exécuté sur les push/PR vers `master`
+2. **[CI Principal](./../.github/workflows/ci.yml)** - Lancé manuellement depuis l'onglet Actions
    - Tests frontend et backend en parallèle
    - Build Docker multi-stage (production uniquement)
    - Upload des artefacts de build
 
 **Documentation complète** : [CI-CD.md](./../.github/CI-CD.md)
 
-#### Déploiement Automatique
+### Déploiement Automatique
 
 Le frontend est **déployé automatiquement** sur [Render](https://render.com) :
 
 - **URL de production** : https://l3miage-projet-integrateur-g7.onrender.com/
-- **Déclencheur** : Push sur la branche `master`
+- **Déclencheur** : Push sur la branche `main`
 - **Mode** : Déploiement continu (Continuous Deployment)
 - **Build** : Optimisé pour la production avec Angular AOT compilation
 
-Chaque commit fusionné sur `master` déclenche automatiquement un nouveau déploiement.
+Chaque commit fusionné sur `main` déclenche automatiquement un nouveau déploiement.
 
-### Jeux de Données de Test
+## Jeux de Données de Test
 
-Le dossier [`datasets/`](datasets/) contient des **jeux de données prêts à l'emploi** pour tester les fonctionnalités d'optimisation de routes.
+Le dossier [`datasets/`](../backend/server/src/main/resources/datasets/) contient des **jeux de données prêts à l'emploi** pour tester les fonctionnalités d'optimisation de routes.
 
-#### Fichiers Disponibles
+### Fichiers Disponibles
 
 Les datasets sont organisés par **taille** et **nombre de véhicules suggérés** :
 
@@ -81,7 +62,7 @@ Les datasets sont organisés par **taille** et **nombre de véhicules suggérés
 | **100 adresses × 3 véhicules** | `dataset-100-par-3-exemple-[1-2].csv` | 2 exemples avec 100 destinations + 1 parking |
 | **400 adresses × 10 véhicules** | `dataset-400-par-10-exemple-[1-2].csv` | 2 exemples avec 400 destinations + 1 parking |
 
-#### Matrices Précalculées
+### Matrices Précalculées
 
 Pour éviter les longs temps de récupération via l'API, chaque dataset dispose de **matrices précalculées** :
 
@@ -92,7 +73,7 @@ Pour éviter les longs temps de récupération via l'API, chaque dataset dispose
 - `distance-matrix-dataset-50-par-3-exemple-1.csv` (matrice 51×51)
 - `duration-matrix-dataset-50-par-3-exemple-1.csv` (matrice 51×51)
 
-#### Format des Fichiers
+### Format des Fichiers
 
 **Datasets d'adresses** (format CSV avec en-têtes) :
 ```csv
@@ -111,15 +92,25 @@ destination,220 Chemin de Bois Claret,38039,Bernin,45.2601,5.8662
 ...
 ```
 
-#### Utilisation
+### Utilisation
 
-1. **Import des adresses** : Glissez-déposez un fichier `dataset-*.csv` dans la section "Locations Control"
-2. **Import des matrices** : Importez les matrices correspondantes dans la section "Matrix Controls" pour éviter les appels API
-3. **Optimisation** : Lancez l'optimisation avec le nombre de véhicules suggéré
+1. **Import** : `POST /api/data/import` avec le nom du jeu, par exemple
+   `{"dataset": "dataset-50-par-3-exemple-1", "clearBeforeImport": true}`.
+2. **Optimisation** : depuis la page Journée, lancez l'optimisation avec le nombre de véhicules
+   suggéré par le nom du fichier.
 
-### Architecture et Évolution du Code
+Les matrices précalculées servaient à l'ancien frontend. Le backend actuel recalcule les matrices
+avec OpenRouteService au moment de l'optimisation.
 
-#### État Initial : Architecture Monolithique
+## Architecture et Évolution du Code
+
+> **Historique.** Cette section décrit les deux premières étapes du frontend. Ensuite, toute la
+> logique métier (optimisation, séparation, matrices, import de données) a été **migrée dans le
+> backend Spring Boot** (`backend/server/.../services/`). Aujourd'hui, le frontend ne contient plus
+> que l'affichage et un seul point d'accès au serveur :
+> [`BackendApiService`](src/app/services/BackendApiService.ts).
+
+### État Initial : Architecture Monolithique
 
 Au début du projet, l'ensemble de l'état de l'application était géré dans un seul fichier composant. Cette approche initiale présentait plusieurs inconvénients :
 - Code difficile à maintenir et à tester
@@ -127,13 +118,13 @@ Au début du projet, l'ensemble de l'état de l'application était géré dans u
 - Réutilisation du code impossible entre composants
 - Difficulté à faire évoluer l'application
 
-#### Refactorisation : Architecture Modulaire par Services
+### Refactorisation : Architecture Modulaire par Services
 
 L'équipe a progressivement refactorisé l'application vers une **architecture modulaire basée sur des services spécialisés**. Cette évolution a permis de séparer clairement les responsabilités et d'améliorer la maintenabilité du code.
 
-##### Services Créés
+#### Services Créés
 
-**1. [DeliveryData](src/app/services/DeliveryData.ts)** - Gestion de l'état des données de livraison
+**1. DeliveryData** - Gestion de l'état des données de livraison
 - Centralise la gestion des adresses de livraison et du parking
 - Utilise des **signals Angular** pour la réactivité
 - Stocke les données dans le `localStorage` avec `cachedSignal()`
@@ -148,7 +139,7 @@ export class DeliveryData {
 }
 ```
 
-**2. [Optimizator](src/app/services/Optimizator.ts)** - Logique d'optimisation des routes
+**2. Optimizator** - Logique d'optimisation des routes
 - Implémente les algorithmes d'optimisation (génétique, greedy, Vroom)
 - Sépare la logique métier complexe de l'interface utilisateur
 - Utilise l'injection de dépendances pour accéder aux autres services
@@ -164,7 +155,7 @@ export class Optimizator {
 }
 ```
 
-**3. [OpenRouteService](src/app/services/OpenRouteService.ts)** - Communication avec l'API externe
+**3. OpenRouteService** - Communication avec l'API externe
 - Encapsule toutes les requêtes HTTP vers OpenRouteService
 - Gère la validation des données avec **Zod**
 - Permet de basculer facilement entre API publique et instance self-hosted
@@ -177,11 +168,11 @@ export class OpenRouteService {
   public async getOptimizedRoute(request: VroomRequest) { ... }
 }
 ```
-**4. [Separator](src/app/services/Separator.ts)** - Séparation géographique des adresses
+**4. Separator** - Séparation géographique des adresses
 - Algorithmes de clustering pour diviser les adresses en groupes
 - Optimisation pour contourner les limites d'API
 
-##### Avantages de cette Architecture
+#### Avantages de cette Architecture
 
 ✅ **Séparation des responsabilités** - Chaque service a un rôle bien défini  
 ✅ **Testabilité** - Les services peuvent être testés unitairement de façon isolée  
@@ -190,15 +181,19 @@ export class OpenRouteService {
 ✅ **Réactivité** - Utilisation des signals Angular pour une UI automatiquement synchronisée  
 ✅ **Type Safety** - Validation des données avec Zod et TypeScript strict
 
-### Import/Export de Données CSV
+## Import/Export de Données CSV
 
-L'application offre des fonctionnalités complètes d'import/export au format CSV pour faciliter le partage et la sauvegarde des données.
+> **Historique.** L'import/export CSV décrit ici existait dans l'ancien frontend. Il a été retiré
+> pendant la migration vers le backend. Les jeux de données s'importent maintenant avec
+> `POST /api/data/import` (voir [DEVELOPMENT.md](../DEVELOPMENT.md#données-de-test)).
 
-#### Export des Adresses
+L'ancien frontend offrait l'import/export au format CSV pour faciliter le partage et la sauvegarde des données.
+
+### Export des Adresses
 
 **Fonctionnalité** : Export de toutes les adresses (destinations + parking) dans un fichier CSV
 
-**Implémentation** : [`csvExport.ts`](src/app/components/locations-control/csvExport.ts)
+**Implémentation** : `csvExport.ts` (ancien frontend)
 
 **Format du fichier CSV exporté** :
 ```csv
@@ -218,7 +213,7 @@ destination,Client B,38000,Grenoble,45.1912,5.7189
 
 **Usage** : Cliquez sur le bouton "Export CSV" dans la section de contrôle des locations
 
-#### Import des Adresses
+### Import des Adresses
 
 **Fonctionnalité** : Import d'adresses depuis un fichier CSV
 
@@ -241,11 +236,11 @@ destination,Client B,38000,Grenoble,45.1912,5.7189
 
 **Usage** : Glissez-déposez un fichier CSV ou cliquez sur "Choisir un fichier" dans la section de contrôle des locations
 
-#### Export des Matrices
+### Export des Matrices
 
 **Fonctionnalité** : Export des matrices de distance et de temps au format CSV
 
-**Implémentation** : [`matrixCsvExport.ts`](src/app/components/matrix-controls/matrixCsvExport.ts)
+**Implémentation** : `matrixCsvExport.ts` (ancien frontend)
 
 **Format du fichier** : Matrice carrée de valeurs numériques (sans en-têtes)
 ```csv
@@ -263,7 +258,7 @@ destination,Client B,38000,Grenoble,45.1912,5.7189
 
 **Usage** : Boutons "Export Distance Matrix" et "Export Duration Matrix" dans la section de contrôle des matrices
 
-#### Import des Matrices
+### Import des Matrices
 
 **Fonctionnalité** : Import de matrices de distance/temps personnalisées depuis CSV
 
@@ -281,22 +276,22 @@ destination,Client B,38000,Grenoble,45.1912,5.7189
 
 **Usage** : Import séparé pour la matrice de distance et la matrice de temps dans la section de contrôle des matrices
 
-#### Bibliothèque Utilisée
+### Bibliothèque Utilisée
 
 **[PapaParse](https://www.papaparse.com/)** - Parsing et unparsing CSV
 - Parse CSV robuste avec détection automatique des délimiteurs
 - Support des en-têtes et des données tabulaires
 - Gestion des erreurs et validation
 
-### Gestion des Matrices de Distance/Temps
+## Gestion des Matrices de Distance/Temps
 
-#### Stratégie de Récupération pour Grandes Matrices
+### Stratégie de Récupération pour Grandes Matrices
 
-OpenRouteService impose une **limite de 50×50 locations** par requête de matrice. Pour gérer des ensembles plus grands, nous avons implémenté une stratégie de découpage dans le service [AlgosService](src/app/services/Algos.ts).
+OpenRouteService impose une **limite de 50×50 locations** par requête de matrice. Pour gérer des ensembles plus grands, nous avons implémenté une stratégie de découpage dans le service [AlgosService](../backend/server/src/main/java/fr/uga/miage/l3/services/core/AlgosService.java).
 
 **Implémentation** : Méthode `getMatrixes()`
 
-##### Algorithme de Découpage
+#### Algorithme de Découpage
 
 1. **Initialisation** - Création d'une matrice principale vide de taille N×N (remplie de zéros)
    ```typescript
@@ -338,7 +333,7 @@ OpenRouteService impose une **limite de 50×50 locations** par requête de matri
    await new Promise((resolve) => setTimeout(resolve, waitTime));
    ```
 
-##### Exemple de Découpage
+#### Exemple de Découpage
 
 Pour **100 adresses**, la matrice 100×100 est découpée en **4 blocs de 50×50** :
 
@@ -358,7 +353,7 @@ Destinations
 - 150 adresses → 9 requêtes
 - 200 adresses → 16 requêtes
 
-##### Monitoring et Estimation
+#### Monitoring et Estimation
 
 Le code affiche des **logs en temps réel** avec :
 - Numéro de requête actuelle / total
@@ -373,7 +368,7 @@ Request 16 of 16, Estimated time left: 0.00 seconds
 Time spent to get this: 48.2s
 ```
 
-##### Note sur le Délai de Throttling
+#### Note sur le Délai de Throttling
 
 **Limite théorique** : 40 requêtes/minute selon la documentation ORS
 
@@ -386,11 +381,11 @@ let waitTime = 120000 / 40; // = 3000ms (3 secondes)
 
 Ce délai permet de respecter **40 requêtes par 2 minutes**, évitant ainsi les erreurs `TooManyRequests` de manière fiable, bien que la raison exacte de cette nécessité reste inexpliquée.
 
-### Architecture d'Optimisation en 2 Phases
+## Architecture d'Optimisation en 2 Phases
 
 L'optimisation des routes se décompose en **deux phases distinctes** :
 
-#### Phase 1 : Séparation (Clustering)
+### Phase 1 : Séparation (Clustering)
 
 Découpage de toutes les locations en groupes (un groupe par véhicule). Cette phase est optionnelle selon la méthode d'optimisation choisie.
 
@@ -409,19 +404,19 @@ Découpage de toutes les locations en groupes (un groupe par véhicule). Cette p
 
 **Note** : L'algorithme **DBSCAN** (Density-Based Spatial Clustering) a été envisagé mais **n'est pas implémenté** actuellement.
 
-##### Pourquoi K-medoids plutôt que K-means ?
+#### Pourquoi K-medoids plutôt que K-means ?
 
 Nous avions initialement testé K-means, mais celui-ci calcule des centroïdes moyens qui ne correspondent pas à des adresses réelles. K-medoids résout ce problème en garantissant que le centre de chaque cluster est toujours une adresse existante, ce qui est essentiel pour notre cas d'usage.
 
-#### Phase 2 : Recherche du Meilleur Chemin
+### Phase 2 : Recherche du Meilleur Chemin
 
 Pour chaque cluster (ou pour toutes les adresses si pas de séparation), on calcule le trajet optimal.
 
-### Algorithmes d'Optimisation Implémentés
+## Algorithmes d'Optimisation Implémentés
 
-Trois stratégies d'optimisation sont disponibles dans le service [Optimizator](src/app/services/Optimizator.ts) :
+Trois stratégies d'optimisation sont disponibles dans le service [OptimizerService](../backend/server/src/main/java/fr/uga/miage/l3/services/core/OptimizerService.java) :
 
-#### 1. Vroom (API)
+### 1. Vroom (API)
 
 **Principe** : Appel direct à l'API d'optimisation OpenRouteService/Vroom
 
@@ -433,7 +428,7 @@ Trois stratégies d'optimisation sont disponibles dans le service [Optimizator](
 
 **Usage** : Solution idéale pour des problèmes de taille moyenne avec accès API.
 
-#### 2. Algorithme Génétique (Machine Learning)
+### 2. Algorithme Génétique (Machine Learning)
 
 **Principe** : Approche inspirée de l'évolution naturelle pour trouver le meilleur cycle hamiltonien
 
@@ -453,9 +448,9 @@ Trois stratégies d'optimisation sont disponibles dans le service [Optimizator](
 - Trouve des solutions quasi-optimales
 - Temps de calcul ajustable (nombre de générations)
 
-**Code** : [geneticSearch.ts](src/app/utils/geneticSearch.ts)
+**Code** : [optimization/genetic/](../backend/server/src/main/java/fr/uga/miage/l3/services/core/optimization/genetic/)
 
-#### 3. Algorithme Glouton (Greedy)
+### 3. Algorithme Glouton (Greedy)
 
 **Principe** : À chaque étape, choisir l'adresse non visitée la plus proche
 
@@ -473,9 +468,9 @@ Trois stratégies d'optimisation sont disponibles dans le service [Optimizator](
 - Fonctionne pour une seule route
 - Pas de garantie d'optimalité globale
 
-**Code** : [greedySearch.ts](src/app/utils/greedySearch.ts)
+**Code** : [GreedyCommand.java](../backend/server/src/main/java/fr/uga/miage/l3/services/core/optimization/greedy/GreedyCommand.java)
 
-#### Illustration du Cycle Hamiltonien
+### Illustration du Cycle Hamiltonien
 
 ![Optimisation des routes avec cycle hamiltonien](illustrations/opt_routes_hamilton.jpg)
 
@@ -484,13 +479,13 @@ Trois stratégies d'optimisation sont disponibles dans le service [Optimizator](
 - Le trajet total (distance ou temps) est minimisé
 - Départ et retour au dépôt
 
-### Éditeur de Solution
+## Éditeur de Solution
 
 Après avoir obtenu une solution d'optimisation, l'application offre un **éditeur interactif** permettant d'ajuster manuellement les routes.
 
 **Implémentation** : [solution-editor](src/app/components/solution-editor/)
 
-#### Fonctionnalités
+### Fonctionnalités
 
 **1. Réorganisation par Drag & Drop**
 - Glissez-déposez les points de livraison pour modifier l'ordre dans une route
@@ -508,7 +503,7 @@ Après avoir obtenu une solution d'optimisation, l'application offre un **édite
 - Nombre de livraisons par véhicule
 - Coordonnées GPS de chaque point
 
-#### État Partagé et Synchronisation
+### État Partagé et Synchronisation
 
 L'éditeur est **étroitement lié à l'état des routes affichées sur la carte** :
 
@@ -523,7 +518,7 @@ protected readonly routes = this._deliveryData.routes; // Routes pour la carte
 2. Recalcul des trajectoires → Appel `getDirections()` via API ORS
 3. Mise à jour de `routes` → Carte actualisée automatiquement
 
-#### Avertissement : Changements Rapides et Rate Limiting
+### Avertissement : Changements Rapides et Rate Limiting
 
 **Problème** : Chaque modification déclenche un appel à l'**API OpenRouteService** pour recalculer et dessiner les trajectoires sur la carte.
 
@@ -551,7 +546,7 @@ private async recalculateRoutes(routes: VehiculeRoute[]): Promise<void> {
 }
 ```
 
-#### Cas d'Usage
+### Cas d'Usage
 
 **Améliorer une solution automatique** :
 - Corriger des erreurs d'optimisation algorithmique
@@ -563,7 +558,7 @@ private async recalculateRoutes(routes: VehiculeRoute[]): Promise<void> {
 - Comparer visuellement les distances sur la carte
 - Vérifier la faisabilité pratique des routes
 
-### Problème avec CORS de OpenRouteService
+## Problème avec CORS de OpenRouteService
 
 Assez souvent on peut rencontrer des problèmes de CORS (Cross-Origin Resource Sharing) lors de l'utilisation d'API tierces comme OpenRouteService. 
 Cela se produit lorsque le serveur de l'API ne permet pas les requêtes provenant de votre domaine.
@@ -574,18 +569,18 @@ Comme une alternative nous avons essayé de déployer notre OpenRouteService + V
 
 Ce n'est pas si grave car on a de rejet pour optimiser les routes et nous pouvons faire l'optimisation nous même en utilisant la matrice de distance et de temps de parcours entre les adresses synthétisées.
 
-### Déploiement Self-Hosted d'OpenRouteService + Vroom
+## Déploiement Self-Hosted d'OpenRouteService + Vroom
 
 L'équipe a exploré le déploiement d'une instance self-hosted d'OpenRouteService avec Vroom pour contourner les limitations et résoudre les problèmes CORS.
 
-#### Contexte et Motivation
+### Contexte et Motivation
 
 Au départ, nous pensions qu'un déploiement self-hosted n'aurait pas de limites pour les requêtes d'optimisation. L'idée était de bénéficier de :
 - Pas de limite de requêtes par minute/jour
 - Résolution des problèmes CORS (contrôle total du serveur)
 - Meilleure performance pour les calculs intensifs
 
-#### Résultats du Déploiement
+### Résultats du Déploiement
 
 Le déploiement s'est avéré **assez rapide et fonctionnel** :
 - ✅ OpenRouteService démarre et fonctionne correctement
@@ -594,7 +589,7 @@ Le déploiement s'est avéré **assez rapide et fonctionnel** :
 
 **Cependant**, Vroom conserve une **limite de 2500 routes** même en self-hosted. Cette limite correspond approximativement à **50 locations au carré** dans une requête d'optimisation (50 × 50 = 2500 calculs de distance).
 
-#### Utilité Malgré les Limitations
+### Utilité Malgré les Limitations
 
 Malgré cette limite, le déploiement self-hosted reste **utile** car :
 - Résout définitivement le problème CORS
@@ -602,7 +597,7 @@ Malgré cette limite, le déploiement self-hosted reste **utile** car :
 - Pas de limite de nombre de requêtes (seulement taille par requête)
 - Contrôle total sur la configuration
 
-#### Lancer l'Instance Self-Hosted
+### Lancer l'Instance Self-Hosted
 
 Les fichiers de configuration sont disponibles dans le dossier [`OpenRouteService/`](../OpenRouteService/).
 
@@ -620,16 +615,19 @@ Cela lance :
 
 **Documentation complète** : [OpenRouteService/SETUP.md](../OpenRouteService/SETUP.md)
 
-#### Configuration Frontend
+### Configuration du backend
 
-Pour utiliser l'instance self-hosted, modifiez les URLs dans [`src/app/services/OpenRouteService.ts`](src/app/services/OpenRouteService.ts) :
+Les appels à OpenRouteService sont faits par le backend, dans
+[`OpenRouteServiceClient.java`](../backend/server/src/main/java/fr/uga/miage/l3/services/core/OpenRouteServiceClient.java).
+Pour viser l'instance self-hosted, modifier `orsBaseUrl` :
 
-```typescript
-// Commenter l'API publique
-// private readonly orsBaseUrl = 'https://api.openrouteservice.org'
-// private readonly vroomBaseUrl = 'https://api.openrouteservice.org/optimization'
-
-// Décommenter les instances self-hosted
-private readonly orsBaseUrl = 'http://localhost:8080/ors'
-private readonly vroomBaseUrl = 'http://localhost:3000'
+```java
+private final String orsBaseUrl = "http://localhost:8080/ors";
 ```
+
+Points d'attention :
+
+- Le backend écoute lui aussi sur le port 8080 : changer `PORT_MAPPING` dans
+  `OpenRouteService/.env` (par exemple `8082:8080`).
+- L'optimisation appelle `orsBaseUrl + "/optimization"`. Avec l'instance self-hosted, Vroom est
+  servi séparément (port 3000) : cette URL doit être adaptée elle aussi.

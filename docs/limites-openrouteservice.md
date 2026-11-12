@@ -1,6 +1,6 @@
+# Limites de l'API OpenRouteService (offre gratuite)
 
-# Limites d'openRouteService #
-## Limites en nombre de requètes
+## Nombre de requêtes
 
 | service | max par minutes | max par jour |
 |---|---|---|
@@ -8,7 +8,7 @@
 | Matrix | 40 | 500 |
 | Optimization | 40 | 500 |
 
-## Limites de Directions ##
+## Directions
 
 | critère | Maximum |
 |---|---|
@@ -19,14 +19,14 @@
 | Volume de polygone à éviter sur la carte | 200km² |
 | Points de passages sur le chemin (waypoints) | 50 |
 
-## Limites de Matrix ##
+## Matrix
 
 | critère | Maximum |
 |---|---|
 | Nombres de points (origin x destination) | 3500 |
 | Nombres de points dynamiques | 25 |
 
-## Limites d'Optimization ##
+## Optimization
 
 | critère | Maximum |
 |---|---|
