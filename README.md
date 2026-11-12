@@ -1,139 +1,217 @@
-# CyberCommandes — Planification de tournées de livraison
+# CyberCommandes
 
-Application web qui aide un planificateur à préparer les tournées de livraison d'une journée.
-Elle répartit les colis entre plusieurs véhicules, calcule les meilleurs itinéraires et permet
-d'ajuster le résultat à la main.
+**Préparer en quelques minutes les tournées de livraison d'une journée.**
 
-Projet Intégrateur — L3 MIAGE, Université Grenoble Alpes (2025-2026), groupe 7.
-Sujet : [l3m-CyberCommandes-2025-2026](https://github.com/L3-MIAGE-GRENOBLE/l3m-CyberCommandes-2025-2026).
+CyberCommandes aide un planificateur d'entrepôt à répartir les colis du jour entre ses
+véhicules. L'application calcule plusieurs plans de tournées, les compare en distance, en temps
+et en coût, puis laisse le planificateur ajuster le plan retenu à la main avant d'imprimer les
+feuilles de route des chauffeurs.
 
-## Fonctionnalités
+![Journée optimisée : carte des tournées et solution retenue](docs/resources/captures/journee.png)
 
-- **Journée** : carte des livraisons non livrées, filtres (statut, dates de commande), masquage
-  ponctuel de livraisons.
-- **Optimisation** : choix du nombre de véhicules et du temps maximum par véhicule, puis
-  génération de plusieurs solutions en arrière-plan (stratégies et algorithmes différents).
-- **Suivi en temps réel** : l'avancement du calcul est poussé au navigateur par WebSocket.
-- **Comparaison** : tableau des solutions triable (distance, carburant, durée, nombre de livraisons).
-- **Solution choisie** : une solution peut être retenue pour la journée et s'affiche à part.
-- **Édition** : glisser-déposer des livraisons entre tournées, recalcul des itinéraires et des
-  statistiques, livraisons hors solution affichées dans une couleur distincte.
+> Projet intégrateur de L3 MIAGE à l'Université Grenoble Alpes (2025-2026), réalisé à six,
+> puis repris et étendu seul par Mohamed Amine Jaanane en M1 MIAGE. Le détail est dans
+> [Historique du projet](#historique-du-projet).
 
-Les processus métier sont décrits dans [docs/processes.md](docs/processes.md). La liste des
-idées de départ, avec ce qui a été réalisé, est dans [docs/Fonctionnalite.md](docs/Fonctionnalite.md).
+## Sommaire
 
-## Comment ça marche
+- [Ce que fait l'application](#ce-que-fait-lapplication)
+- [Démarrer en deux minutes](#démarrer-en-deux-minutes)
+- [Comment fonctionne l'optimisation](#comment-fonctionne-loptimisation)
+- [Architecture](#architecture)
+- [Qualité et tests](#qualité-et-tests)
+- [Historique du projet](#historique-du-projet)
+- [Documentation](#documentation)
 
-L'optimisation se fait en deux phases :
+## Ce que fait l'application
 
-1. **Séparation** : les livraisons sont réparties en un groupe par véhicule, soit par
-   **K-medoids** (zones géographiques), soit par **secteurs angulaires** autour du dépôt.
-   VROOM peut aussi faire la répartition lui-même.
-2. **Itinéraire** : pour chaque groupe, l'ordre de passage est calculé par **VROOM** (via
-   OpenRouteService), un **algorithme génétique** ou un **algorithme glouton**.
+| Étape | Ce que fait le planificateur |
+|---|---|
+| **Préparer** | Gère les livraisons (adresse recherchée dans la Base Adresse Nationale, poids, temps de montage) et l'équipe (chauffeurs, véhicules, charge utile, consommation). |
+| **Optimiser** | Choisit le nombre de véhicules et la durée maximale d'une tournée. L'application génère une solution par stratégie (31 pour 5 véhicules) en arrière-plan et affiche l'avancement en direct. |
+| **Comparer** | Trie les solutions par distance, durée, carburant, coût ou marge, puis retient la meilleure pour la journée. |
+| **Ajuster** | Déplace des livraisons d'une tournée à l'autre par glisser-déposer. Distances, coûts et tracés sont recalculés. |
+| **Affecter** | Confie chaque tournée à un chauffeur et à un véhicule. Un même chauffeur ne peut pas conduire deux tournées, et un chargement trop lourd est refusé. |
+| **Livrer** | Imprime la feuille de route ou l'exporte en CSV, puis clôture la tournée : ses livraisons passent à « livrée ». |
 
-Chaque combinaison séparation × moteur donne une solution. Le planificateur les compare, puis
-choisit la meilleure.
+Le **calendrier** sert de page d'accueil. Il montre les journées déjà optimisées et celles dont la
+solution est retenue.
 
-Les matrices de distances et de durées viennent de l'API
-[OpenRouteService](https://openrouteservice.org/). Elles restent côté serveur et ne sont jamais
-envoyées au navigateur.
+<table>
+  <tr>
+    <td><img src="docs/resources/captures/solution.png" alt="Éditeur de solution avec carte et tournées"></td>
+    <td><img src="docs/resources/captures/feuille-de-route.png" alt="Feuille de route imprimable"></td>
+  </tr>
+  <tr>
+    <td align="center">Éditeur de solution</td>
+    <td align="center">Feuille de route du chauffeur</td>
+  </tr>
+</table>
 
-Les explications détaillées (découpage des matrices, choix des algorithmes, éditeur) sont dans le
-[rapport technique](client/README.md).
+### Coût et marge
 
-## Stack
+Chaque tournée affiche son bilan :
+
+- **Coût** = carburant (distance × consommation du véhicule × prix du litre) + heures payées au
+  chauffeur (trajet et montage, au taux horaire du chauffeur affecté).
+- **Recette** = forfait par livraison + supplément au kilogramme.
+
+Les valeurs par défaut se règlent dans
+[`application.yml`](backend/server/src/main/resources/application.yml) (`app.couts`).
+
+## Démarrer en deux minutes
+
+Seul **Docker** est nécessaire. Aucune clé d'API n'est requise.
+
+```bash
+git clone https://github.com/MEDAMINEJAANANE21/pi-2025-2026-groupe-7.git
+cd pi-2025-2026-groupe-7
+docker compose -f docker-compose-local.yml --profile app up --build
+```
+
+Ouvrez http://localhost:8080. Dans **Livraisons**, cliquez sur **Données d'essai** et importez un
+jeu de 50 adresses autour de Grenoble. Générez ensuite quelques livraisons. Ouvrez enfin
+**Aujourd'hui** et lancez l'optimisation.
+
+> **Sans clé OpenRouteService**, l'application passe en *mode estimation* : les distances sont
+> calculées à vol d'oiseau (avec un facteur de détour), et le moteur VROOM n'est pas proposé.
+> Pour de vrais itinéraires routiers, créez une clé gratuite sur
+> [openrouteservice.org](https://openrouteservice.org/dev/#/signup) et passez-la dans `ORS_KEY`.
+
+Pour développer (rechargement à chaud, tests), suivez le [guide de développement](DEVELOPMENT.md).
+
+## Comment fonctionne l'optimisation
+
+Répartir des colis entre véhicules est un problème de tournées de véhicules (VRP). Il est trop
+coûteux à résoudre exactement : on combine donc deux étapes approchées.
+
+```mermaid
+flowchart LR
+    A[Livraisons choisies] --> B[Matrices distances / durées<br/>OpenRouteService ou estimation]
+    B --> C{Découpage<br/>un groupe par véhicule}
+    C -->|Sans découpage| D
+    C -->|Secteurs autour du dépôt| D
+    C -->|K-medoids| D
+    D{Ordre de passage} -->|VROOM| E
+    D -->|Algorithme génétique| E
+    D -->|Plus proche voisin| E
+    E[Contrainte de durée maximale] --> F[(Solution enregistrée)]
+```
+
+1. **Découpage.** Les livraisons sont réparties en groupes, un par véhicule. On peut prendre des
+   secteurs angulaires autour du dépôt, comme des parts de gâteau, ou faire des groupes de
+   voisins avec K-medoids. On peut aussi laisser VROOM tout répartir lui-même.
+2. **Ordre de passage.** Chaque groupe est ordonné par VROOM (solveur d'OpenRouteService), par
+   un algorithme génétique (Jenetics) ou par l'heuristique du plus proche voisin.
+3. **Durée maximale.** Si une tournée dépasse le budget de temps, on retire d'abord la commande
+   la plus récente : les clients qui attendent depuis longtemps restent prioritaires.
+
+Chaque combinaison découpage × moteur × nombre de véhicules donne une solution. Les calculs
+tournent en parallèle sur un pool de threads dédié. Le navigateur suit l'avancement par
+WebSocket (STOMP).
+
+## Architecture
+
+```mermaid
+flowchart TB
+    subgraph Navigateur
+        UI[Angular 21<br/>signals, CDK drag-drop, Leaflet]
+    end
+    subgraph Serveur[Spring Boot 4 · Java 21]
+        API[rest-api<br/>contrats : interfaces + DTO]
+        CTRL[Contrôleurs]
+        CMP[Composants métier]
+        OPT[Pipeline d'optimisation]
+        DB[(PostgreSQL)]
+    end
+    ORS[OpenRouteService<br/>matrices, VROOM, itinéraires]
+    BAN[Base Adresse Nationale]
+
+    UI -- REST /api --> CTRL
+    UI -- WebSocket /ws --> CTRL
+    UI -- recherche d'adresse --> BAN
+    CTRL -. implémente .-> API
+    CTRL --> CMP --> DB
+    CTRL --> OPT --> CMP
+    OPT --> ORS
+```
 
 | Partie | Technologies |
 |---|---|
-| Frontend | Angular 21 (composants standalone, signals), Taiga UI 4, Leaflet, Zod 4, STOMP |
-| Backend | Java 21, Spring Boot, Spring Data JPA, MapStruct, Lombok, springdoc-openapi |
-| Données | PostgreSQL (H2 en mémoire pour les tests) |
-| Tests | JUnit 5, Mockito, MockMvc, JaCoCo · Karma + Jasmine |
-| Livraison | Docker multi-stage, GitHub Actions |
+| Frontend | Angular 21 (composants standalone, signals, zoneless), Angular CDK, Leaflet, Zod, STOMP |
+| Backend | Java 21, Spring Boot 4, Spring Data JPA, MapStruct, Lombok, Jenetics, Resilience4j, springdoc-openapi |
+| Données | PostgreSQL ; H2 en mémoire pour les tests |
+| Qualité | JUnit 5, AssertJ, Mockito, WebTestClient, JaCoCo · Jasmine, Karma |
+| Livraison | Docker multi-étapes, GitHub Actions |
 
-## Structure du dépôt
+Patterns utilisés et choix techniques : voir [docs/architecture.md](docs/architecture.md).
 
 ```text
-backend/
-  rest-api/     contrats publics : interfaces d'endpoints et DTO (aucune logique)
-  server/       implémentation : contrôleurs, services, entités, optimisation
-client/         application Angular
-docs/           documentation fonctionnelle
-OpenRouteService/  installation optionnelle d'un ORS auto-hébergé
-deploy/, nginx/    scripts et configuration de déploiement
+backend/rest-api   contrats publics de l'API (interfaces d'endpoints, DTO), sans logique
+backend/server     contrôleurs, composants métier, optimisation, persistance
+client/            application Angular
+docs/              architecture, API, fonctionnalités, rapport technique de L3
+deploy/, nginx/    déploiement sur serveur ; OpenRouteService/ pour un ORS auto-hébergé
 ```
 
-## Démarrage rapide
-
-Prérequis : **Java 21+**, **Node.js 20.19+**, **Docker**.
+## Qualité et tests
 
 ```bash
-# 1. Base de données
-docker compose -f docker-compose-local.yml up -d postgres
-
-# 2. Configuration (clé OpenRouteService gratuite sur openrouteservice.org)
-cp .env.example .env        # puis renseigner ORS_KEY
-
-# 3. Backend → http://localhost:8080
-./mvnw clean install -DskipTests
-./mvnw -f backend/pom.xml -pl server spring-boot:run
-
-# 4. Frontend → http://localhost:4200
-cd client && npm ci && npm start
+./mvnw -f backend/pom.xml verify     # tests backend + seuil de couverture JaCoCo
+cd client && npm run test:ci         # tests frontend (Chrome headless)
 ```
 
-Pour avoir des données, importer un jeu de test :
+- **Backend** : tests unitaires des algorithmes (découpage, glouton, génétique, contrainte de
+  durée, coûts), et tests d'intégration de chaque route sur une base H2. OpenRouteService est
+  toujours simulé : aucune clé ni connexion n'est nécessaire.
+- **Couverture** mesurée et **bloquante** : au moins 85 % des lignes et 65 % des branches.
+- **Frontend** : utilitaires, couche API (HttpTestingController), éditeur de tournées et
+  composants clés.
+- **CI** : chaque push lance les deux suites, puis construit l'image Docker sur `main`.
 
-```bash
-curl -X POST http://localhost:8080/api/data/import \
-  -H "Content-Type: application/json" \
-  -d '{"dataset": "dataset-50-par-3-exemple-1", "clearBeforeImport": true}'
-```
+## Historique du projet
 
-Le guide complet (variables d'environnement, jeux de données, production, dépannage) est dans
-[DEVELOPMENT.md](DEVELOPMENT.md).
+**L3 MIAGE, 2025-2026 : projet intégrateur en groupe.** Nikolai Dorofeev, Omar Barkok, Mohamed
+Amine Cheikh, Maxime Legrenzi, Tennessee Alves et Mohamed Amine Jaanane ont construit la
+première version. Elle s'appuyait sur une base fournie par Alexandre Demeure et Nicolas Marinho
+([sujet](https://github.com/L3-MIAGE-GRENOBLE/l3m-CyberCommandes-2025-2026)). Elle couvrait
+déjà l'optimisation en deux phases, la comparaison des solutions et l'édition par
+glisser-déposer. Le [rapport technique d'origine](docs/rapport-technique.md) décrit cette version.
 
-## API
+**M1 MIAGE : reprise par Mohamed Amine Jaanane.**
 
-La documentation interactive est servie par le backend sur
-`http://localhost:8080/swagger-ui/index.html`.
+- *Architecture* :
+  - le service d'optimisation de 470 lignes a été découpé en classes à responsabilité unique
+    (Strategy pour les moteurs et les découpages, Factory pour le problème) ;
+  - exceptions métier plutôt qu'exceptions HTTP dans les services ;
+  - pool de threads dédié, sans attente bloquante ;
+  - code mort et dépendances inutilisées supprimés.
+- *Corrections* :
+  - avec un découpage, chaque groupe recevait tous les véhicules au lieu d'un seul ;
+  - recharger une page profonde donnait une erreur 404 en production ;
+  - une optimisation interrompue par un redémarrage bloquait la journée pour toujours ;
+  - le seuil de couverture n'était en réalité jamais vérifié.
+- *Fonctionnalités* : saisie et modification des livraisons, gestion de l'équipe, affectation
+  des tournées, coûts et marges, clôture des tournées, feuille de route imprimable et export CSV,
+  calendrier, mode estimation sans clé d'API.
+- *Interface* : refonte complète. Un design system sobre remplace Taiga UI, et le bundle
+  initial passe sous 90 ko compressés.
+- *Tests* : tests unitaires des algorithmes, tests de toutes les nouvelles routes, couverture
+  rendue bloquante.
 
-| Méthode | Route | Rôle |
-|---|---|---|
-| GET | `/api/livraisons?livree=&dateDebut=&dateFin=` | Livraisons filtrées |
-| GET | `/api/parkings` | Dépôt de départ des véhicules |
-| GET | `/api/journees/{date}` | État d'une journée |
-| POST | `/api/journees/{date}/optimization` | Lance l'optimisation (asynchrone) |
-| GET | `/api/journees/{date}/solutions` | Solutions générées pour la journée |
-| GET | `/api/journees/{date}/solutions/choisie` | Solution retenue (404 si aucune) |
-| GET | `/api/solutions/{id}` | Détail d'une solution |
-| GET | `/api/solutions/{id}/livraisons` | Livraisons dans / hors de la solution |
-| PUT | `/api/solutions/{id}/choisie` | Marque la solution comme retenue |
-| PUT | `/api/solutions/{id}/tournees` | Enregistre une solution éditée |
-| POST | `/api/solutions/{id}/recalculate-stats` | Recalcule les statistiques |
-| POST | `/api/routes` | Tracé routier d'une tournée |
-| POST | `/api/data/import` | Importe un jeu de données de test |
-| POST | `/api/data/generate/livraisons` | Génère des livraisons aléatoires |
+## Documentation
 
-WebSocket (STOMP) : point d'entrée `/ws`, sujet `/topic/journee/{date}`.
+| Document | Contenu |
+|---|---|
+| [DEVELOPMENT.md](DEVELOPMENT.md) | Installation, configuration, tests, production, dépannage |
+| [docs/architecture.md](docs/architecture.md) | Couches, patterns, pipeline d'optimisation, modèle de données, choix techniques |
+| [docs/api.md](docs/api.md) | Toutes les routes REST et le sujet WebSocket |
+| [docs/fonctionnalites.md](docs/fonctionnalites.md) | Besoins de départ et état de chacun |
+| [docs/processes.md](docs/processes.md) | Processus métier du planificateur |
+| [docs/rapport-technique.md](docs/rapport-technique.md) | Rapport technique de la version L3 |
 
-## Tests
-
-```bash
-./mvnw -f backend/pom.xml clean verify                      # backend + seuil de couverture
-cd client && npm test -- --watch=false --browsers=ChromeHeadless
-```
-
-Les appels à OpenRouteService sont simulés dans les tests : aucune clé n'est nécessaire.
-
-## Équipe
-
-Groupe 7 — voir [AUTHORS](AUTHORS) : Nikolai Dorofeev, Omar Barkok, Mohamed Amine Cheikh,
-Maxime Legrenzi, Tennessee Alves, Mohamed Amine Jaanane.
-
-Base de code de départ fournie par Alexandre Demeure et Nicolas Marinho.
+La documentation interactive de l'API est servie par le backend sur `/swagger-ui/index.html`.
 
 ## Licence
 
-[MIT](LICENSE).
+[MIT](LICENSE). Contributeurs : voir [AUTHORS](AUTHORS).

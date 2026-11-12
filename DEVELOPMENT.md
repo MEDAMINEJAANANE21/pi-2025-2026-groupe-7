@@ -1,17 +1,17 @@
 # Guide de développement
 
 Tout ce qu'il faut pour lancer, tester et déployer le projet. La vue d'ensemble est dans le
-[README](README.md).
+[README](README.md), l'organisation du code dans [docs/architecture.md](docs/architecture.md).
 
 ## Sommaire
 
 1. [Prérequis](#prérequis)
 2. [Configuration](#configuration)
 3. [Lancer en développement](#lancer-en-développement)
-4. [Données de test](#données-de-test)
+4. [Données d'essai](#données-dessai)
 5. [Tests](#tests)
 6. [Production](#production)
-7. [Conventions du code](#conventions-du-code)
+7. [Conventions](#conventions)
 8. [Dépannage](#dépannage)
 
 ## Prérequis
@@ -19,16 +19,16 @@ Tout ce qu'il faut pour lancer, tester et déployer le projet. La vue d'ensemble
 | Outil | Version |
 |---|---|
 | Java (JDK) | 21 ou plus |
-| Node.js | 20.19 ou plus (22 / 24 conseillés) |
-| npm | 10 ou plus |
-| Docker + Docker Compose | récent |
+| Node.js | 20.19 ou plus (22 conseillé) |
+| Docker | récent, pour PostgreSQL |
 
-Maven n'a pas besoin d'être installé : le wrapper `./mvnw` est fourni.
+Maven n'a pas besoin d'être installé : le wrapper `./mvnw` (ou `mvnw.cmd` sous Windows) est
+fourni.
 
 ## Configuration
 
-Le backend lit ses réglages dans des variables d'environnement. En local, le plus simple est un
-fichier `.env` à la racine du dépôt :
+Le backend lit ses réglages dans des variables d'environnement ou dans un fichier `.env` à la
+racine du dépôt (ignoré par git) :
 
 ```bash
 cp .env.example .env
@@ -37,179 +37,152 @@ cp .env.example .env
 | Variable | Défaut | Rôle |
 |---|---|---|
 | `DB_URL` | `jdbc:postgresql://localhost:5432/local` | URL JDBC PostgreSQL |
-| `DB_USERNAME` | `postgres` | Utilisateur de la base |
-| `DB_PASSWORD` | `postgres` | Mot de passe de la base |
-| `DB_JPA_DDL_AUTO` | `create-drop` | Gestion du schéma (`create-drop`, `update`, `validate`, `none`) |
-| `ORS_KEY` | — | Clé de l'API [OpenRouteService](https://openrouteservice.org/dev/#/signup) (gratuite) |
+| `DB_USERNAME`, `DB_PASSWORD` | `postgres` | Identifiants de la base |
+| `DB_JPA_DDL_AUTO` | `update` | Gestion du schéma : `update` garde les données, `create-drop` repart de zéro |
+| `ORS_KEY` | vide | Clé [OpenRouteService](https://openrouteservice.org/dev/#/signup). Vide = mode estimation |
+| `ORS_URL` | `https://api.openrouteservice.org` | Pour une instance ORS auto-hébergée |
 
-> ⚠️ Le fichier `.env` est ignoré par git. Ne jamais committer de vraie clé ni de mot de passe.
+D'autres réglages vivent dans
+[`application.yml`](backend/server/src/main/resources/application.yml) :
 
-Avec `create-drop`, la base est **vidée à chaque redémarrage** du backend. Utiliser `update` pour
-garder les données entre deux lancements.
+- `app.ors.estimation-sans-cle` : active le mode estimation quand `ORS_KEY` est vide (`true`
+  par défaut) ;
+- `app.couts.*` : consommation par défaut, prix du carburant, taux horaire, tarifs facturés.
 
 ## Lancer en développement
 
-Trois processus séparés, chacun dans son terminal.
-
-### 1. PostgreSQL
+Trois terminaux.
 
 ```bash
+# 1. PostgreSQL
 docker compose -f docker-compose-local.yml up -d postgres
-```
 
-Base `local` sur `localhost:5432`, utilisateur `postgres`, mot de passe `postgres`.
-
-Pour l'arrêter : `docker compose -f docker-compose-local.yml down`.
-
-Pour consulter les données depuis IntelliJ, ajouter une *data source* PostgreSQL avec ces
-paramètres :
-
-![Créer une data source](docs/resources/create-data-source.png)
-![Configurer la data source](docs/resources/config-data-source.png)
-
-### 2. Backend
-
-```bash
-./mvnw clean install -DskipTests              # une fois, compile tous les modules
+# 2. Backend : http://localhost:8080, Swagger sur /swagger-ui/index.html
+./mvnw clean install -DskipTests
 ./mvnw -f backend/pom.xml -pl server spring-boot:run
+
+# 3. Frontend : http://localhost:4200
+cd client && npm ci && npm start
 ```
 
-- API : http://localhost:8080/api
-- Swagger UI : http://localhost:8080/swagger-ui/index.html
+`npm start` utilise [client/proxy.conf.json](client/proxy.conf.json). Le serveur Angular
+redirige `/api` et `/ws` vers `localhost:8080`, sans souci de CORS. Le code n'utilise que des
+URL relatives.
 
-### 3. Frontend
+Pour tout lancer d'un coup avec Docker (sans rechargement à chaud) :
 
 ```bash
-cd client
-npm ci
-npm start
+docker compose -f docker-compose-local.yml --profile app up --build   # http://localhost:8080
 ```
 
-Application : http://localhost:4200
+## Données d'essai
 
-`npm start` utilise [client/proxy.conf.json](client/proxy.conf.json). Le serveur de dev Angular
-redirige `/api` et `/ws` vers `localhost:8080`, ce qui évite les problèmes de CORS. Le code
-frontend n'utilise donc que des URL relatives (`/api/...`).
-
-## Données de test
-
-Après un démarrage sur une base vide, importer un jeu de données :
+Le plus simple passe par l'interface : **Livraisons → Données d'essai**. On peut aussi passer
+par l'API :
 
 ```bash
 curl -X POST http://localhost:8080/api/data/import \
   -H "Content-Type: application/json" \
-  -d '{"dataset": "dataset-100-par-3-exemple-1", "clearBeforeImport": true}'
-```
+  -d '{"dataset": "DATASET_50_PAR_3_EXEMPLE_1", "clearBeforeImport": true}'
 
-Jeux disponibles (dans `backend/server/src/main/resources/datasets/`) :
-
-| Nom | Adresses (environ) | Véhicules suggérés |
-|---|---|---|
-| `dataset-50-par-3-exemple-1` à `-3` | 50 | 3 |
-| `dataset-100-par-3-exemple-1` à `-2` | 100 | 3 |
-| `dataset-400-par-10-exemple-1` à `-2` | 400 | 10 |
-
-L'import lui-même n'appelle aucune API externe. En revanche, **l'optimisation interroge
-OpenRouteService** pour les matrices de distances et de durées : une `ORS_KEY` valide est
-nécessaire. Les gros jeux consomment beaucoup de quota (requêtes découpées en blocs de 50×50).
-Les quotas de l'offre gratuite sont listés dans
-[docs/limites-openrouteservice.md](docs/limites-openrouteservice.md).
-
-Pour ajouter des livraisons aléatoires :
-
-```bash
 curl -X POST http://localhost:8080/api/data/generate/livraisons \
-  -H "Content-Type: application/json" -d '{"count": 20}'
+  -H "Content-Type: application/json" -d '{"count": 30}'
 ```
+
+Jeux disponibles (`backend/server/src/main/resources/datasets/`) : 50, 100 ou 400 adresses
+autour de Grenoble, avec le dépôt.
+
+> L'import **vide les livraisons, les solutions et les journées existantes**.
+
+Avec une clé ORS, une optimisation consomme du quota : les matrices sont demandées par blocs de
+50 × 50 points. Les quotas de l'offre gratuite sont dans
+[docs/limites-openrouteservice.md](docs/limites-openrouteservice.md).
 
 ## Tests
 
 ### Backend
 
 ```bash
-./mvnw -f backend/pom.xml clean verify                                   # tout + couverture
-./mvnw -f backend/pom.xml -pl server test -Dtest=ParkingEndpointsTest     # une classe
-./mvnw -f backend/pom.xml -pl server test -Dtest='!SolutionGenerationEndpointsTest'  # sans le test lent
+./mvnw -f backend/pom.xml verify                                          # tout + couverture
+./mvnw -f backend/pom.xml -pl server test -Dtest=TourneeEndpointsTest      # une classe
+./mvnw -f backend/pom.xml -pl server test -Dtest='!SolutionGenerationEndpointsTest'  # sans le plus lent
 ```
 
-- Base H2 en mémoire, configurée dans `backend/server/src/test/resources/application.yml`.
-- OpenRouteService est **toujours simulé** : aucune clé ni connexion réseau n'est nécessaire.
-- `verify` échoue si la couverture de lignes JaCoCo n'est pas de **100 %** (règle dans
-  `backend/pom.xml`). Les classes annotées `@Generated` sont exclues du calcul.
+- Les tests d'intégration démarrent l'application sur une base H2 en mémoire
+  (`src/test/resources/application.yml`). OpenRouteService est toujours remplacé par un mock.
+- Les algorithmes ont leurs tests unitaires, sans Spring. `fixtures/ProblemFixtures` construit
+  un problème sur un plan, à partir de coordonnées en kilomètres.
+- `verify` mesure la couverture avec JaCoCo et **échoue** sous 85 % des lignes ou 65 % des
+  branches. Le rapport est généré dans `backend/server/target/site/jacoco/index.html`.
 
 ### Frontend
 
 ```bash
 cd client
-npm test -- --watch=false --browsers=ChromeHeadless
+npm run test:ci
 ```
 
-Karma a besoin de Chrome ou Chromium. S'il n'est pas trouvé, indiquer son chemin dans la variable
+Karma a besoin de Chrome ou Chromium. S'il n'est pas trouvé, indiquer son chemin dans
 `CHROME_BIN`.
 
 ## Production
 
-L'image Docker unique contient le frontend compilé et le backend Spring Boot. La base PostgreSQL
-est externe (service managé).
+L'image Docker unique contient le frontend compilé et le backend. La base PostgreSQL est
+externe.
 
 ```bash
-docker build -t cybercommandes:latest .
-
+docker build -t cybercommandes .
 docker run -p 8080:8080 \
   -e DB_URL="jdbc:postgresql://<hote>:5432/<base>" \
-  -e DB_USERNAME="<utilisateur>" \
-  -e DB_PASSWORD="<mot-de-passe>" \
-  -e DB_JPA_DDL_AUTO="validate" \
-  -e ORS_KEY="<cle-ors>" \
-  cybercommandes:latest
+  -e DB_USERNAME="<utilisateur>" -e DB_PASSWORD="<mot-de-passe>" \
+  -e DB_JPA_DDL_AUTO=validate \
+  -e ORS_KEY="<cle>" \
+  cybercommandes
 ```
 
-Application : http://localhost:8080
+Autres fichiers :
 
-Autres fichiers de déploiement :
-
-- `docker-compose.yml` : application + PostgreSQL sur un même serveur.
-- `deploy/` : redéploiement automatique par systemd, voir [deploy/README.md](deploy/README.md).
-- `OpenRouteService/` : instance ORS auto-hébergée, voir [OpenRouteService/SETUP.md](OpenRouteService/SETUP.md).
+- `docker-compose.yml` : PostgreSQL, backend et NGINX sur un même serveur ;
+- `deploy/` : redéploiement automatique par systemd, voir [deploy/README.md](deploy/README.md) ;
+- `OpenRouteService/` : instance ORS auto-hébergée, voir [OpenRouteService/SETUP.md](OpenRouteService/SETUP.md) ;
 - CI : [.github/CI-CD.md](.github/CI-CD.md).
 
-## Conventions du code
+## Conventions
 
-### Architecture backend
+### Backend
 
-- `backend/rest-api` contient **uniquement** les contrats : interfaces d'endpoints (`endpoints/`)
-  et DTO immuables (`record`). Aucune logique.
-- `backend/server` implémente ces interfaces. Les contrôleurs délèguent aux services ; les
-  conversions entité ↔ DTO passent par MapStruct (`mappers/`).
-- Un nouvel endpoint commence par son interface dans `rest-api`, puis son test MockMvc dans
-  `server/src/test/.../endpoints/`, puis l'implémentation.
+- Un nouvel endpoint commence par son interface et ses DTO dans `rest-api`. Viennent ensuite son
+  test d'intégration dans `server/src/test/.../endpoints/`, puis l'implémentation.
+- Les contrôleurs restent fins : ils délèguent à un composant (`component/`) et convertissent
+  avec un mapper. Ils n'accèdent pas aux dépôts.
+- Les erreurs passent par `ResourceNotFoundException`, `InvalidRequestException` ou
+  `ConflictException`. Jamais de `ResponseStatusException` dans le métier.
+- Un nouvel algorithme implémente `SeparationStrategy` ou `RouteOptimizer` et devient un bean :
+  le pipeline le prend en compte sans modification.
+- Style : conventions Java d'Oracle, [.editorconfig](.editorconfig), messages d'erreur en
+  français.
 
-### Contrat frontend ↔ backend
+### Frontend
 
-- Chaque DTO Java a son schéma **Zod** miroir dans `client/src/app/models/backend.ts`, avec les
-  mêmes noms de champs (`XxxResponseDTO` → `XxxResponseSchema`).
-- Tous les appels HTTP passent par `client/src/app/services/BackendApiService.ts`, et chaque
-  réponse est validée avec son schéma Zod.
-- Les matrices OpenRouteService restent côté serveur.
-
-### Style
-
-- Java : conventions Oracle (voir aussi [.editorconfig](.editorconfig)).
-- TypeScript : Prettier (`printWidth: 100`, `singleQuote: true`), composants standalone,
-  `ChangeDetectionStrategy.OnPush`, signals.
+- Chaque DTO Java a son schéma Zod dans `client/src/app/core/models/api.ts`, avec les mêmes noms
+  de champs.
+- Les appels HTTP passent par une classe de `core/api`. Les composants n'utilisent jamais
+  `HttpClient` directement.
+- Prettier : `printWidth: 100`, `singleQuote: true`.
 
 ### Git
 
 - Une branche par tâche : `task/<id>-<description-courte>`.
-- Messages de commit : `feat(#<id>): ...`, `fix(#<id>): ...`, `test(#<id>): ...`, `docs: ...`.
+- Messages : `feat(#<id>): …`, `fix(#<id>): …`, `refactor: …`, `test: …`, `docs: …`.
 
 ## Dépannage
 
 | Symptôme | Cause probable | Solution |
 |---|---|---|
-| `TypeTag :: UNKNOWN` à la compilation | Lombok trop ancien pour votre JDK | Lombok est en 1.18.42 (JDK 21 à 25) ; mettre à jour si JDK plus récent |
-| `Connection refused` sur le port 5432 | PostgreSQL non démarré | Lancer Docker Desktop, puis `docker compose ... up -d postgres` |
-| `Port 8080 was already in use` | Un autre programme utilise le port | Lancer avec `SERVER_PORT=8081` et adapter `client/proxy.conf.json` |
-| L'optimisation reste bloquée ou échoue | Clé `ORS_KEY` absente ou quota dépassé | Vérifier la clé ; tester d'abord avec un jeu de 50 adresses |
-| La base est vide après redémarrage | `DB_JPA_DDL_AUTO=create-drop` | Passer à `update` ou réimporter un jeu de données |
+| `Connection refused` sur le port 5432 | PostgreSQL non démarré, ou port pris | `docker compose -f docker-compose-local.yml up -d postgres`, ou changer le port dans le compose et `DB_URL` |
+| `Port 8080 was already in use` | Un autre programme écoute déjà | Lancer avec `--server.port=8081` et adapter `client/proxy.conf.json` |
+| Les tracés sont des lignes droites | Mode estimation (pas de `ORS_KEY`) | Normal sans clé ; renseigner `ORS_KEY` pour les vrais itinéraires |
+| L'optimisation échoue en 502 | Clé ORS invalide ou quota dépassé | Vérifier la clé ; tester d'abord avec 50 adresses |
+| « Une optimisation est déjà en cours » | Calcul précédent pas terminé | Attendre le statut « Terminée » ; un redémarrage du backend débloque aussi la journée |
+| Classes introuvables pendant les tests (`ClassNotFoundException: TourneeRepository`) | L'IDE compile dans `target/` en même temps que Maven | Relancer avec `./mvnw -f backend/pom.xml clean verify` |
 | `Cannot start ChromeHeadless` | Chrome non installé | Installer Chrome ou définir `CHROME_BIN` |

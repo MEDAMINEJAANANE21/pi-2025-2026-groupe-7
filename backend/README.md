@@ -1,58 +1,17 @@
 # Backend
 
-## Database Class Diagram
+Projet Maven multi-module :
 
-```mermaid
-classDiagram
-    class Coords {
-        +double lat
-        +double lng
-    }
+| Module | Contenu |
+|---|---|
+| `rest-api` | Contrats de l'API : interfaces d'endpoints annotées (Spring Web, OpenAPI) et DTO `record`. Aucune logique. |
+| `server` | Application Spring Boot : contrôleurs, composants métier, optimisation, persistance JPA. |
 
-    class Adresse {
-        +Coords coords
-        +String rue
-        +String numero
-        +String codePostal
-        +String ville
-    }
-
-    class Livraison {
-        +Adresse adresse
-        +double poids
-    }
-
-    class Tournee {
-        +List~Livraison~ livraisons
-        +DateTime date
-        +Equipe equipe
-    }
-
-    class Equipe {
-        +Long id
-        +String nom
-        +List~Livreur~ livreurs
-        +List~Tournee~ tournees
-    }
-
-    class Livreur {
-        +Long id
-        +String nom
-        +String vehicule
-    }
-
-    class Chemin {
-        +Adresse adresse1
-        +Adresse adresse2
-        +int distance
-        +Duration duree
-    }
-
-    Adresse "1" --> "1" Coords : coords
-    Livraison "*" --> "1" Adresse : adresse
-    Tournee "*" --> "1..*" Livraison : livraisons
-    Tournee "*" --> "1" Equipe : equipe
-    Equipe "1" --> "1..*" Livreur : livreurs
-    Chemin "*" --> "1" Adresse : adresse1
-    Chemin "*" --> "1" Adresse : adresse2
+```bash
+./mvnw -f backend/pom.xml verify                          # tests + couverture
+./mvnw -f backend/pom.xml -pl server spring-boot:run      # lancer l'API sur le port 8080
 ```
+
+L'organisation des paquets, les patterns et le modèle de données sont décrits dans
+[docs/architecture.md](../docs/architecture.md). Les routes sont listées dans
+[docs/api.md](../docs/api.md).
