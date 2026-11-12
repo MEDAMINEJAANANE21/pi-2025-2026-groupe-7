@@ -2,7 +2,7 @@
 # Builds Angular app and serves static files with custom NGINX config
 
 # Stage 1: Build Angular application
-FROM node:20-alpine AS frontend-build
+FROM node:22-alpine AS frontend-build
 
 WORKDIR /frontend
 

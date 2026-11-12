@@ -1,85 +1,19 @@
-# CI/CD GitHub Actions
+# CI/CD
 
-Ce document décrit les workflows CI/CD actuellement utilisés dans le dépôt.
+## `ci.yml`
 
-## Workflows
+Déclenché à chaque push sur `main`, sur chaque pull request, et à la demande (onglet *Actions*).
 
-### 1. CI principal
-Fichier : `.github/workflows/ci.yml`
+| Job | Ce qu'il vérifie |
+|---|---|
+| `backend` | `mvn verify` : tous les tests (H2, OpenRouteService simulé) puis le seuil JaCoCo (85 % des lignes, 65 % des branches). Le rapport de couverture est publié en artefact. |
+| `frontend` | `npm ci`, build de production (avec les budgets de taille), tests Karma en Chrome headless. |
+| `docker` | Sur `main` seulement, une fois les deux autres jobs réussis : construit l'image de production (`Dockerfile` à la racine), sans la publier. |
 
-Déclenchement :
-- déclenchement manuel uniquement (onglet *Actions* → *Run workflow*)
+Aucun secret n'est nécessaire : les tests n'appellent aucun service externe.
 
-> Les déclencheurs `push` et `pull_request` sont commentés dans `ci.yml`. Les workflows
-> frontend et backend ci-dessous couvrent déjà chaque push.
+## `db-update-schema.yml`
 
-Jobs :
-- `test-frontend`
-  - Node.js 20
-  - installation des dépendances dans `client/`
-  - build Angular
-  - tests unitaires (ChromeHeadless)
-  - publication des artefacts frontend
-- `test-backend`
-  - Java 21 (Temurin)
-  - cache Maven
-  - compilation/tests/package dans `backend/`
-  - publication du JAR
-- `build-docker`
-  - exécuté uniquement sur la branche `main`
-  - build de l'image Docker de production (frontend + backend)
-  - lancement rapide d'un conteneur de vérification
-
-## 2. Frontend uniquement
-Fichier : `.github/workflows/frontend-test.yml`
-
-Déclenchement :
-- changements dans `client/**`
-- changements du workflow lui-même
-
-Ce workflow exécute :
-- installation npm
-- build Angular de production
-- tests unitaires avec couverture
-- upload des rapports de couverture
-
-## 3. Backend uniquement
-Fichier : `.github/workflows/backend-test.yml`
-
-Déclenchement :
-- changements dans `backend/**`
-- changements du workflow lui-même
-
-Ce workflow exécute :
-- tests Maven
-- packaging du backend
-- upload des rapports de tests et du JAR
-
-## Exécution locale recommandée avant push
-
-### Frontend
-```bash
-cd client
-npm ci
-npm test -- --watch=false --browsers=ChromeHeadless
-npm run build
-```
-
-### Backend
-```bash
-./mvnw -f backend/pom.xml clean verify   # tests + couverture 100 %
-./mvnw -f backend/pom.xml package
-```
-
-### Build de l'image de production
-```bash
-docker build -t projet-integrateur:test .
-```
-
-## Points d'attention
-
-- Le dossier frontend du dépôt est `client/`.
-- Le backend s'exécute avec Java 21.
-- En production, l'image Docker contient frontend + backend, et la base PostgreSQL est externe (cloud).
-- Le workflow `db-update-schema.yml` (manuel) a besoin des secrets de connexion à la base de
-  production. Sans eux, il échoue.
+Lancement manuel. Met à jour le schéma de la base de production avec la valeur
+`spring.jpa.hibernate.ddl-auto` choisie. Il utilise les secrets `DB_URL`, `DB_USERNAME` et
+`DB_PASSWORD` du dépôt.

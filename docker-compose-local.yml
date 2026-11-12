@@ -1,15 +1,35 @@
+# Développement local.
+#   Base seule       : docker compose -f docker-compose-local.yml up -d postgres
+#   Application prête : docker compose -f docker-compose-local.yml --profile app up --build
+#                      puis http://localhost:8080
 services:
   postgres:
     image: postgres:18
     ports:
       - 5432:5432
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: local
       POSTGRES_USER: postgres
     volumes:
       - postgres_data:/var/lib/postgresql
+
+  app:
+    profiles: [app]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/local
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_JPA_DDL_AUTO: update
+      ORS_KEY: ${ORS_KEY:-}
 
 volumes:
   postgres_data:
