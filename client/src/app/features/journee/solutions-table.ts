@@ -80,7 +80,7 @@ const VALUE: Record<Column, (s: SolutionStatistiques) => number | null> = {
     }
 
     tr.chosen td:first-child {
-      box-shadow: inset 3px 0 0 var(--accent);
+      box-shadow: inset 3px 0 0 var(--finish);
     }
 
     td {

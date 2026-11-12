@@ -1,7 +1,7 @@
 /*
  * Design system de CyberCommandes.
  * Interface neutre (gris graphite) : la couleur est réservée à la carte et aux tournées.
- * Un seul accent, orange balisage, pour l'action principale et la sélection.
+ * Bleu pour l'action principale et les chiffres clés, rose pour les finitions (focus, sélection, état actif).
  */
 
 :root {
@@ -16,9 +16,11 @@
   --text-2: #525252;
   --text-3: #737373;
 
-  --accent: #c2410c;
-  --accent-strong: #9a3412;
-  --accent-soft: #fbf1ea;
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --accent-soft: #eef3fe;
+  --finish: #db2777;
+  --finish-soft: #fdf0f6;
   --positive: #15803d;
   --positive-soft: #edf7f0;
   --negative: #dc2626;
@@ -94,7 +96,7 @@ a {
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--finish);
   outline-offset: 2px;
 }
 
@@ -468,7 +470,7 @@ select.input {
   }
 
   &.chosen::before {
-    background: var(--accent);
+    background: var(--finish);
   }
 }
 
@@ -483,8 +485,8 @@ select.input {
   font-size: 12px;
 
   &.accent {
-    background: var(--accent-soft);
-    color: var(--accent-strong);
+    background: var(--finish-soft);
+    color: #be185d;
   }
 
   &.positive {
@@ -613,10 +615,6 @@ dialog.dialog {
 .leaflet-container {
   font-family: var(--font);
   background: var(--sunken);
-}
-
-.leaflet-tile-pane {
-  filter: grayscale(1) contrast(0.9) brightness(1.06);
 }
 
 .leaflet-tooltip.stop-tooltip {

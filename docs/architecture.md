@@ -196,8 +196,9 @@ client/src/app/
 - **Design system maison.** Il tient dans `styles.scss` : tokens, boutons, champs, tableaux,
   dialogues natifs `<dialog>`. Il a remplacé Taiga UI, qui imposait son style et pesait
   l'essentiel du bundle.
-- **Identité visuelle.** L'interface reste en gris neutre : la couleur est réservée aux
-  tournées. Chaque véhicule a la sienne, reprise sur la carte, dans l'éditeur, sur le
+- **Identité visuelle.** Surfaces grises, bleu pour l'action principale et les chiffres clés,
+  rose pour les finitions (focus, état actif, solution retenue). La carte garde les couleurs
+  d'origine d'OpenStreetMap. Chaque véhicule a sa propre couleur de tournée, reprise sur la carte, dans l'éditeur, sur le
   calendrier et sur la feuille de route. Le *ruban de tournée* (dépôt → arrêts → dépôt) en est
   la signature visuelle.
 

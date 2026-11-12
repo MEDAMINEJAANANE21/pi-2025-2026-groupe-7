@@ -129,9 +129,9 @@ const STEPS: { statut: StatutGeneration; label: string }[] = [
         color: var(--text);
 
         .bullet {
-          border-color: var(--accent);
+          border-color: var(--finish);
           box-shadow: inset 0 0 0 3px var(--surface);
-          background: var(--accent);
+          background: var(--finish);
         }
       }
     }

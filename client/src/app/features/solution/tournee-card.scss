@@ -57,7 +57,7 @@ header {
 
 .stale {
   margin-top: -8px;
-  color: var(--accent-strong);
+  color: #be185d;
 }
 
 .affectation {
@@ -154,8 +154,8 @@ header {
 .placeholder {
   height: 44px;
   border-radius: var(--r);
-  border: 1px dashed var(--accent);
-  background: var(--accent-soft);
+  border: 1px dashed var(--finish);
+  background: var(--finish-soft);
 }
 
 footer {

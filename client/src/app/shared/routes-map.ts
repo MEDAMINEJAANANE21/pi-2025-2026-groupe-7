@@ -76,7 +76,7 @@ export class RoutesMap {
   private createMap(): void {
     this.map = leafletMap(this.container().nativeElement, { zoomControl: true, attributionControl: true })
       .setView(GRENOBLE, 12);
-    // Fond OpenStreetMap désaturé en CSS (.leaflet-tile-pane) : les tournées restent la seule couleur.
+    // Fond OpenStreetMap dans ses couleurs d'origine.
     tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">contributeurs OpenStreetMap</a>',

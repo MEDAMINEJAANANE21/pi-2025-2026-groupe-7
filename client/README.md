@@ -33,6 +33,7 @@ src/app/
 - Styles communs dans `src/styles.scss` : tokens (`--text`, `--accent`, `--r-card`…), boutons
   `.btn`, champs `.input`, tableaux `.table`, dialogues `dialog.dialog`. Les styles de composant
   restent courts et réutilisent ces tokens.
-- Une seule couleur d'accent (orange) pour l'action principale et la sélection. Les autres
+- Palette : gris pour les surfaces, bleu (`--accent`) pour l'action principale et les chiffres
+  clés, rose (`--finish`) pour les finitions : focus, état actif, solution retenue. Les autres
   couleurs sont réservées aux tournées (`core/util/route-colors.ts`).
 - Icônes : sous-ensemble de [Lucide](https://lucide.dev) dans `shared/icon.ts`, 16 px, trait 1,5.
