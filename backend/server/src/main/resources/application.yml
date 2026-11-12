@@ -2,6 +2,8 @@ spring:
     config:
         import:
             - optional:file:./.env[.properties]
+            # spring-boot:run starts in backend/server: also look for the .env at the repository root.
+            - optional:file:../../.env[.properties]
     datasource:
         username: ${DB_USERNAME:postgres}
         password: ${DB_PASSWORD:postgres}
