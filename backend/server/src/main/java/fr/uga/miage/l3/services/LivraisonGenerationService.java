@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -14,7 +13,7 @@ public class LivraisonGenerationService {
 
   public LivraisonEntity generateLivraison() {
     LivraisonEntity livraison = new LivraisonEntity();
-    livraison.setReference(UUID.randomUUID().toString());
+    livraison.setReference(LivraisonReference.next());
     return livraison;
   }
 

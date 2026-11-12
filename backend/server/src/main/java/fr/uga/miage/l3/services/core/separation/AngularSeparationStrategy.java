@@ -1,12 +1,24 @@
 package fr.uga.miage.l3.services.core.separation;
 
+import fr.uga.miage.l3.enums.Separation;
 import fr.uga.miage.l3.models.core.Adresse;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Découpe le plan en secteurs angulaires autour du dépôt, comme les parts d'une pizza.
+ */
+@Component
 public class AngularSeparationStrategy implements SeparationStrategy {
+
+    @Override
+    public Separation type() {
+        return Separation.ANGULAR;
+    }
+
     @Override
     public List<List<Integer>> separate(List<Adresse> allLocations, double[][] distanceMatrix, int nbGroups) {
         if (allLocations == null || allLocations.isEmpty() || nbGroups <= 0) {

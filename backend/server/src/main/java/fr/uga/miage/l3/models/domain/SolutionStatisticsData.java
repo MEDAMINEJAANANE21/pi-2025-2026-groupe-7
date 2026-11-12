@@ -1,11 +1,13 @@
 package fr.uga.miage.l3.models.domain;
 
 import fr.uga.miage.l3.models.entities.Strategie;
+import fr.uga.miage.l3.services.statistics.TourneeFinances;
+
 import java.time.Duration;
 import java.time.LocalDate;
 
 /**
- * Aggregated statistics for a solution with durations already mapped from numeric seconds.
+ * Statistiques agrégées d'une solution : total, minimum, maximum et moyenne par tournée.
  */
 public record SolutionStatisticsData(
     Long id,
@@ -35,7 +37,7 @@ public record SolutionStatisticsData(
     Duration tempsMontageMin,
     Duration tempsMontageMax,
     Duration tempsTotalMin,
-    Duration tempsTotalMax
+    Duration tempsTotalMax,
+    TourneeFinances finances
 ) {
 }
-

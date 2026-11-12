@@ -1,8 +1,10 @@
 spring:
+    application:
+        name: cybercommandes
     config:
         import:
             - optional:file:./.env[.properties]
-            # spring-boot:run starts in backend/server: also look for the .env at the repository root.
+            # spring-boot:run démarre dans backend/server : on cherche aussi le .env à la racine du dépôt.
             - optional:file:../../.env[.properties]
     datasource:
         username: ${DB_USERNAME:postgres}
@@ -10,5 +12,27 @@ spring:
         url: ${DB_URL:jdbc:postgresql://localhost:5432/local}
     jpa:
         database-platform: org.hibernate.dialect.PostgreSQLDialect
+        # Les mappers parcourent des relations paresseuses après la sortie du service.
+        open-in-view: true
         hibernate:
-            ddl-auto: ${DB_JPA_DDL_AUTO:create-drop}
+            ddl-auto: ${DB_JPA_DDL_AUTO:update}
+
+app:
+    ors:
+        base-url: ${ORS_URL:https://api.openrouteservice.org}
+        api-key: ${ORS_KEY:}
+        # Sans clé, distances estimées à vol d'oiseau : l'application reste utilisable pour une démo.
+        estimation-sans-cle: true
+        timeout: PT60S
+    couts:
+        consommation-litres-aux100-km: 8.0
+        prix-carburant-par-litre: 1.80
+        taux-horaire-chauffeur: 22.0
+        tarif-par-livraison: 9.0
+        tarif-par-kg: 0.15
+
+management:
+    endpoints:
+        web:
+            exposure:
+                include: health,info

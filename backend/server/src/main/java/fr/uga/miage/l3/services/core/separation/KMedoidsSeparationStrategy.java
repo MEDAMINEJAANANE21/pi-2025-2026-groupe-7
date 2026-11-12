@@ -1,15 +1,27 @@
 package fr.uga.miage.l3.services.core.separation;
 
+import fr.uga.miage.l3.enums.Separation;
 import fr.uga.miage.l3.models.core.Adresse;
 import fr.uga.miage.l3.services.core.separation.kmedoids.KMedoidsResult;
 import fr.uga.miage.l3.services.core.separation.kmedoids.KMedoidsCommand;
+
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 
+/**
+ * Regroupe les livraisons proches autour de « medoids » (des livraisons réelles servant de centre).
+ */
+@Component
 public class KMedoidsSeparationStrategy implements SeparationStrategy {
+
+    @Override
+    public Separation type() {
+        return Separation.KMEDOIDS;
+    }
 
     private static final int KMEDOIDS_MAX_ITERATIONS = 50;
 

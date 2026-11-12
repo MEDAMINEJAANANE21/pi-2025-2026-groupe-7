@@ -35,7 +35,8 @@ public record SolutionStatisticsResponseDTO(
     String tempsTotal,
     String tempsTotalMin,
     String tempsTotalMax,
-    String tempsTotalMoyenne
+    String tempsTotalMoyenne,
+    FinancesDTO finances
 ) {
 }
 

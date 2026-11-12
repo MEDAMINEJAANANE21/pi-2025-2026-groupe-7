@@ -5,9 +5,10 @@ import fr.uga.miage.l3.models.entities.AdresseEntity;
 import fr.uga.miage.l3.models.entities.Coords;
 import fr.uga.miage.l3.models.entities.ParkingEntity;
 import fr.uga.miage.l3.repository.AdresseRepository;
+import fr.uga.miage.l3.repository.JourneeRepository;
 import fr.uga.miage.l3.repository.LivraisonRepository;
 import fr.uga.miage.l3.repository.ParkingRepository;
-import fr.uga.miage.l3.services.LivraisonGenerationService;
+import fr.uga.miage.l3.repository.SolutionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,8 @@ public class DatasetImportService {
   private final AdresseRepository adresseRepository;
   private final LivraisonRepository livraisonRepository;
   private final ParkingRepository parkingRepository;
+  private final JourneeRepository journeeRepository;
+  private final SolutionRepository solutionRepository;
 
   @Transactional
   public DatasetImportResult importDataset(DatasetDefinition dataset, boolean clearBeforeImport) {
@@ -84,6 +87,9 @@ public class DatasetImportService {
   }
 
   private void clearImportedTables() {
+    // Les solutions référencent les livraisons : on vide d'abord la planification.
+    journeeRepository.deleteAllInBatch();
+    solutionRepository.deleteAll();
     parkingRepository.deleteAllInBatch();
     livraisonRepository.deleteAllInBatch();
     adresseRepository.deleteAllInBatch();
@@ -147,7 +153,7 @@ public class DatasetImportService {
       .setSkipHeaderRecord(true)
       .setTrim(true)
       .setIgnoreEmptyLines(true)
-      .build();
+      .get();
 
     try (BufferedReader reader = openReader(fileName);
          CSVParser parser = format.parse(reader)) {

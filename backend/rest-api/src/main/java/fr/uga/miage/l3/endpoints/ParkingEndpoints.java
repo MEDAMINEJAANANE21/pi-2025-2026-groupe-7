@@ -1,6 +1,5 @@
 package fr.uga.miage.l3.endpoints;
 
-import fr.uga.miage.l3.request.ParkingCreationRequest;
 import fr.uga.miage.l3.errors.ErrorDTO;
 import fr.uga.miage.l3.responses.ParkingResponsesDTO;
 import io.swagger.v3.oas.annotations.Operation;

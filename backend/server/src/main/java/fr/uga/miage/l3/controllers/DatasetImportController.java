@@ -2,7 +2,7 @@ package fr.uga.miage.l3.controllers;
 
 import fr.uga.miage.l3.endpoints.DatasetImportEndpoints;
 import fr.uga.miage.l3.enums.DatasetDefinition;
-import fr.uga.miage.l3.exceptions.rest.BadRequestRestException;
+import fr.uga.miage.l3.exceptions.InvalidRequestException;
 import fr.uga.miage.l3.mappers.DatasetImportMapper;
 import fr.uga.miage.l3.request.DatasetImportRequest;
 import fr.uga.miage.l3.request.RandomLivraisonsGenerationRequest;
@@ -34,14 +34,14 @@ public class DatasetImportController implements DatasetImportEndpoints {
   @Override
   public DatasetImportResponseDTO importDataset(DatasetImportRequest request) {
     if (request == null || request.dataset() == null || request.dataset().isBlank()) {
-      throw new BadRequestRestException("Dataset ne peut pas etre null");
+      throw new InvalidRequestException("Dataset ne peut pas etre null");
     }
 
     DatasetDefinition definition;
     try {
       definition = DatasetDefinition.fromValue(request.dataset());
     } catch (IllegalArgumentException e) {
-      throw new BadRequestRestException(e.getMessage());
+      throw new InvalidRequestException(e.getMessage());
     }
 
     boolean clearBeforeImport = request.clearBeforeImport() == null || request.clearBeforeImport();
@@ -64,13 +64,13 @@ public class DatasetImportController implements DatasetImportEndpoints {
         stats.livraisonsAvailable()
       );
     } catch (IllegalStateException e) {
-      throw new BadRequestRestException(e.getMessage());
+      throw new InvalidRequestException(e.getMessage());
     }
   }
 
   private int extractValidCount(Integer count) {
     if (count == null || count <= 0) {
-      throw new BadRequestRestException("count doit etre un entier strictement positif");
+      throw new InvalidRequestException("count doit etre un entier strictement positif");
     }
     return count;
   }

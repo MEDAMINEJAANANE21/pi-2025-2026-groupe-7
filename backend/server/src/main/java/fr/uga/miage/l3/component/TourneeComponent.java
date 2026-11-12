@@ -1,132 +1,166 @@
 package fr.uga.miage.l3.component;
 
+import fr.uga.miage.l3.exceptions.ConflictException;
+import fr.uga.miage.l3.exceptions.ResourceNotFoundException;
+import fr.uga.miage.l3.mappers.AdresseMapper;
+import fr.uga.miage.l3.models.core.Adresse;
+import fr.uga.miage.l3.models.core.MatrixResponse;
+import fr.uga.miage.l3.models.entities.AdresseEntity;
+import fr.uga.miage.l3.models.entities.ChauffeurEntity;
 import fr.uga.miage.l3.models.entities.LivraisonEntity;
 import fr.uga.miage.l3.models.entities.SolutionEntity;
-import fr.uga.miage.l3.models.entities.Statistic;
 import fr.uga.miage.l3.models.entities.TourneeEntity;
+import fr.uga.miage.l3.models.entities.VehiculeEntity;
+import fr.uga.miage.l3.repository.ChauffeurRepository;
+import fr.uga.miage.l3.repository.ParkingRepository;
 import fr.uga.miage.l3.repository.TourneeRepository;
+import fr.uga.miage.l3.repository.VehiculeRepository;
+import fr.uga.miage.l3.request.AffectationRequest;
+import fr.uga.miage.l3.services.core.DistanceMatrixService;
+import fr.uga.miage.l3.services.optimisation.OptimisationProblem;
+import fr.uga.miage.l3.services.statistics.TourneeStatisticsCalculator;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import java.util.Objects;
 
 @Component
-@Slf4j
 @RequiredArgsConstructor
 public class TourneeComponent {
-  private final TourneeRepository tourneeRepository;
 
-  private static final double DEFAULT_FUEL_LITERS_PER_100_KM = 8.0;
+    private final TourneeRepository tourneeRepository;
+    private final ChauffeurRepository chauffeurRepository;
+    private final VehiculeRepository vehiculeRepository;
+    private final ParkingRepository parkingRepository;
+    private final DistanceMatrixService distanceMatrixService;
+    private final AdresseMapper adresseMapper;
+    private final TourneeStatisticsCalculator statisticsCalculator;
+    private final Clock clock;
 
-  public List<TourneeEntity> saveTourneesForSolution(
-    SolutionEntity solution,
-    List<List<Integer>> routesIndexes,
-    Map<Integer, LivraisonEntity> livraisonByIndex,
-    double[][] distanceMatrix,
-    Duration[][] durationMatrix,
-    int parkingIndex
-  ) {
-    if (solution == null || routesIndexes == null) {
-      return List.of();
+    public TourneeEntity get(Long id) {
+        return tourneeRepository.findById(id).orElseThrow(() -> ResourceNotFoundException.of("Tournée", id));
     }
 
-    List<TourneeEntity> tournees = new ArrayList<>();
-    for (List<Integer> orderedIndexes : routesIndexes) {
-      if (orderedIndexes == null || orderedIndexes.isEmpty()) {
-        continue;
-      }
-
-      List<LivraisonEntity> orderedLivraisons = orderedIndexes.stream()
-        .map(livraisonByIndex::get)
-        .filter(Objects::nonNull)
-        .toList();
-
-      if (orderedLivraisons.isEmpty()) {
-        continue;
-      }
-
-      if (orderedLivraisons.size() != orderedIndexes.size()) {
-        log.warn("Some optimized job indexes cannot be mapped to a livraison for solution {}", solution.getId());
-      }
-
-      Statistic statistic = computeStatistic(orderedIndexes, orderedLivraisons, distanceMatrix, durationMatrix, parkingIndex);
-
-      TourneeEntity tournee = TourneeEntity.builder()
-        .solutionEntity(solution)
-        .livraisonEntities(orderedLivraisons)
-        .statistic(statistic)
-        .build();
-      tournees.add(tourneeRepository.save(tournee));
+    public List<TourneeEntity> saveForSolution(SolutionEntity solution, List<List<Integer>> routes, OptimisationProblem problem) {
+        List<TourneeEntity> tournees = routes.stream()
+            .filter(route -> !route.isEmpty())
+            .map(route -> TourneeEntity.builder()
+                .solutionEntity(solution)
+                .livraisonEntities(new ArrayList<>(route.stream().map(problem::livraisonAt).toList()))
+                .statistic(statisticsCalculator.fromProblem(route, problem))
+                .build())
+            .toList();
+        return tourneeRepository.saveAll(tournees);
     }
 
-    return tournees;
-  }
+    @Transactional
+    public TourneeEntity affecter(Long id, AffectationRequest request) {
+        TourneeEntity tournee = get(id);
+        ChauffeurEntity chauffeur = request.chauffeurId() == null ? null : chauffeurRepository.findById(request.chauffeurId())
+            .orElseThrow(() -> ResourceNotFoundException.of("Chauffeur", request.chauffeurId()));
+        VehiculeEntity vehicule = request.vehiculeId() == null ? null : vehiculeRepository.findById(request.vehiculeId())
+            .orElseThrow(() -> ResourceNotFoundException.of("Véhicule", request.vehiculeId()));
 
-  private Statistic computeStatistic(
-    List<Integer> orderedIndexes,
-    List<LivraisonEntity> orderedLivraisons,
-    double[][] distanceMatrix,
-    Duration[][] durationMatrix,
-    int parkingIndex
-  ) {
-    long totalDistance = 0L;
-    Duration totalTravelDuration = Duration.ZERO;
+        ensureAvailableInSolution(tournee, chauffeur, vehicule);
+        ensureCapacity(tournee, vehicule);
 
-    int previousIndex = parkingIndex;
-    for (Integer index : orderedIndexes) {
-      if (index == null) {
-        continue;
-      }
-      totalDistance += safeDistance(distanceMatrix, previousIndex, index);
-      totalTravelDuration = totalTravelDuration.plus(safeDuration(durationMatrix, previousIndex, index));
-      previousIndex = index;
+        tournee.setChauffeur(chauffeur);
+        tournee.setVehicule(vehicule);
+        tournee.setStatistic(statisticsCalculator.withVehicule(tournee.getStatistic(), vehicule));
+        return tourneeRepository.save(tournee);
     }
 
-    if (!orderedIndexes.isEmpty()) {
-      int lastIndex = orderedIndexes.get(orderedIndexes.size() - 1);
-      totalDistance += safeDistance(distanceMatrix, lastIndex, parkingIndex);
-      totalTravelDuration = totalTravelDuration.plus(safeDuration(durationMatrix, lastIndex, parkingIndex));
+    @Transactional
+    public TourneeEntity terminer(Long id) {
+        TourneeEntity tournee = get(id);
+        LocalDateTime now = LocalDateTime.now(clock);
+        tournee.getLivraisonEntities().stream()
+            .filter(livraison -> !livraison.isLivree())
+            .forEach(livraison -> livraison.marquerLivree(true, now));
+        return tourneeRepository.save(tournee);
     }
 
-    Duration totalMontageDuration = orderedLivraisons.stream()
-      .map(LivraisonEntity::getTempsMontage)
-      .filter(Objects::nonNull)
-      .reduce(Duration.ZERO, Duration::plus);
+    /**
+     * Recalcule distance et durée à partir des trajets réels dépôt → livraisons → dépôt.
+     */
+    public void recalculateStatistics(TourneeEntity tournee) {
+        List<LivraisonEntity> livraisons = tournee.getLivraisonEntities();
+        AdresseEntity parking = parkingRepository.findTopByOrderByIdDesc().map(p -> p.getAdresse()).orElse(null);
+        if (livraisons == null || livraisons.isEmpty() || parking == null) {
+            return;
+        }
+        List<AdresseEntity> stops = new ArrayList<>();
+        stops.add(parking);
+        livraisons.stream().map(LivraisonEntity::getAdresseEntity).filter(a -> a.getCoords() != null).forEach(stops::add);
+        if (stops.size() < 2) {
+            return;
+        }
 
-    long fuelMilliliters = Math.round((totalDistance / 1000.0) * (DEFAULT_FUEL_LITERS_PER_100_KM * 10.0));
-
-    return Statistic.builder()
-      .distance(totalDistance)
-      .tempsTrajet(totalTravelDuration)
-      .tempsMontage(totalMontageDuration)
-      .carburant(fuelMilliliters)
-      .build();
-  }
-
-  private long safeDistance(double[][] matrix, int i, int j) {
-    if (!isValidIndex(matrix, i) || !isValidIndex(matrix, j)) {
-      return 0L;
+        List<Adresse> locations = adresseMapper.toCore(stops);
+        MatrixResponse matrix = distanceMatrixService.getMatrices(locations);
+        if (matrix == null || matrix.distances == null || matrix.durations == null) {
+            return;
+        }
+        long distance = 0;
+        long seconds = 0;
+        for (int i = 0; i < locations.size(); i++) {
+            int next = (i + 1) % locations.size();
+            distance += valueAt(matrix.distances, i, next);
+            seconds += valueAt(matrix.durations, i, next);
+        }
+        tournee.setStatistic(statisticsCalculator.fromTotals(distance, Duration.ofSeconds(seconds), livraisons, tournee.getVehicule()));
+        tourneeRepository.save(tournee);
     }
-    return Math.round(matrix[i][j]);
-  }
 
-  private Duration safeDuration(Duration[][] matrix, int i, int j) {
-    if (!isValidIndex(matrix, i) || !isValidIndex(matrix, j)) {
-      return Duration.ZERO;
+    @Transactional
+    public void detachChauffeur(Long chauffeurId) {
+        tourneeRepository.findAllByChauffeurId(chauffeurId).forEach(tournee -> tournee.setChauffeur(null));
     }
-    return matrix[i][j] == null ? Duration.ZERO : matrix[i][j];
-  }
 
-  private boolean isValidIndex(double[][] matrix, int index) {
-    return matrix != null && index >= 0 && index < matrix.length;
-  }
+    @Transactional
+    public void detachVehicule(Long vehiculeId) {
+        tourneeRepository.findAllByVehiculeId(vehiculeId).forEach(tournee -> {
+            tournee.setVehicule(null);
+            tournee.setStatistic(statisticsCalculator.withVehicule(tournee.getStatistic(), null));
+        });
+    }
 
-  private boolean isValidIndex(Duration[][] matrix, int index) {
-    return matrix != null && index >= 0 && index < matrix.length;
-  }
+    private static void ensureAvailableInSolution(TourneeEntity tournee, ChauffeurEntity chauffeur, VehiculeEntity vehicule) {
+        List<TourneeEntity> others = tournee.getSolutionEntity().getTourneeEntities().stream()
+            .filter(other -> !Objects.equals(other.getId(), tournee.getId()))
+            .toList();
+        if (chauffeur != null && others.stream().anyMatch(other -> sameId(other.getChauffeur(), chauffeur))) {
+            throw new ConflictException(chauffeur.getPrenom() + " " + chauffeur.getNom() + " conduit déjà une autre tournée de cette solution");
+        }
+        if (vehicule != null && others.stream().anyMatch(other -> other.getVehicule() != null
+            && Objects.equals(other.getVehicule().getId(), vehicule.getId()))) {
+            throw new ConflictException("Le véhicule " + vehicule.getImmatriculation() + " est déjà utilisé dans cette solution");
+        }
+    }
+
+    private static void ensureCapacity(TourneeEntity tournee, VehiculeEntity vehicule) {
+        if (vehicule != null && vehicule.getCapaciteKg() != null && tournee.poidsTotal() > vehicule.getCapaciteKg()) {
+            throw new ConflictException(String.format(Locale.FRANCE,
+                "La tournée pèse %.1f kg, le véhicule %s n'en porte que %.1f",
+                tournee.poidsTotal(), vehicule.getImmatriculation(), vehicule.getCapaciteKg()));
+        }
+    }
+
+    private static boolean sameId(ChauffeurEntity a, ChauffeurEntity b) {
+        return a != null && Objects.equals(a.getId(), b.getId());
+    }
+
+    private static long valueAt(List<List<Integer>> matrix, int i, int j) {
+        if (i >= matrix.size() || matrix.get(i) == null || j >= matrix.get(i).size() || matrix.get(i).get(j) == null) {
+            return 0;
+        }
+        return matrix.get(i).get(j);
+    }
 }

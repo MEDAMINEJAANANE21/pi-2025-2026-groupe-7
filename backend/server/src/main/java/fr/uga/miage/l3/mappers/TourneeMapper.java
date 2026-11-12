@@ -1,41 +1,54 @@
 package fr.uga.miage.l3.mappers;
 
-import org.mapstruct.Mapper;
-
+import fr.uga.miage.l3.models.entities.Statistic;
 import fr.uga.miage.l3.models.entities.TourneeEntity;
-import fr.uga.miage.l3.responses.LivraisonResponsesDTO;
 import fr.uga.miage.l3.responses.TourneeResponsesDTO;
 import fr.uga.miage.l3.responses.TourneeStatisticsResponseDTO;
-import fr.uga.miage.l3.config.SpringContext;
+import fr.uga.miage.l3.services.statistics.FinanceCalculator;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.List;
 
-@Mapper(componentModel = "spring")
-public interface TourneeMapper {
-    default TourneeResponsesDTO toTourneeResponsesDTO(TourneeEntity tourneeEntity) {
-        LivraisonMapper livraisonMapper = SpringContext.getBean(LivraisonMapper.class);
+/**
+ * Écrit à la main car le bilan financier est calculé à la lecture, pas stocké.
+ */
+@Component
+@RequiredArgsConstructor
+public class TourneeMapper {
 
-        Long id = tourneeEntity.getId();
-        List<LivraisonResponsesDTO> livraisons = new ArrayList<>();
-        if (tourneeEntity.getLivraisonEntities() != null) {
-            tourneeEntity.getLivraisonEntities().forEach(
-                livraisonEntity -> livraisons.add(livraisonMapper.toDTO(livraisonEntity))
-            );
-        }
+    private final LivraisonMapper livraisonMapper;
+    private final ChauffeurMapper chauffeurMapper;
+    private final VehiculeMapper vehiculeMapper;
+    private final FinancesMapper financesMapper;
+    private final FinanceCalculator financeCalculator;
 
-        var statEntity = tourneeEntity.getStatistic();
-        TourneeStatisticsResponseDTO stats = null;
-        if (statEntity != null) {
-            String tempsTrajet = statEntity.getTempsTrajet() == null ? null : statEntity.getTempsTrajet().toString();
-            String tempsMontage = statEntity.getTempsMontage() == null ? null : statEntity.getTempsMontage().toString();
-            stats = new TourneeStatisticsResponseDTO(
-                statEntity.getCarburant(),
-                statEntity.getDistance(),
-                tempsTrajet,
-                tempsMontage
-            );
+    public TourneeResponsesDTO toDto(TourneeEntity tournee) {
+        return new TourneeResponsesDTO(
+            tournee.getId(),
+            livraisonMapper.toDTOList(tournee.getLivraisonEntities() == null ? List.of() : tournee.getLivraisonEntities()),
+            toDto(tournee.getStatistic()),
+            financesMapper.toDto(financeCalculator.compute(tournee)),
+            tournee.poidsTotal(),
+            tournee.getChauffeur() == null ? null : chauffeurMapper.toDto(tournee.getChauffeur()),
+            tournee.getVehicule() == null ? null : vehiculeMapper.toDto(tournee.getVehicule())
+        );
+    }
+
+    private static TourneeStatisticsResponseDTO toDto(Statistic statistic) {
+        if (statistic == null) {
+            return null;
         }
-        return new TourneeResponsesDTO(id, livraisons, stats);
+        return new TourneeStatisticsResponseDTO(
+            statistic.getCarburant(),
+            statistic.getDistance(),
+            toIso(statistic.getTempsTrajet()),
+            toIso(statistic.getTempsMontage())
+        );
+    }
+
+    private static String toIso(Duration duration) {
+        return duration == null ? null : duration.toString();
     }
 }

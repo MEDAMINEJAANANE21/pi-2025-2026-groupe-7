@@ -1,74 +1,76 @@
 package fr.uga.miage.l3.services.core;
 
 import fr.uga.miage.l3.models.core.Adresse;
+import fr.uga.miage.l3.models.core.DirectionsResponse;
 import fr.uga.miage.l3.models.core.MatrixResponse;
 import fr.uga.miage.l3.models.core.OptimizationResult;
-import fr.uga.miage.l3.models.core.DirectionsResponse;
 import lombok.Generated;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-@Generated // Pour ignorer cette classe dans coverage
-@RequiredArgsConstructor
+/**
+ * Pattern utilisé : Adapter. Seul point de contact avec l'API HTTP d'OpenRouteService.
+ *
+ * <p>Exclu de la couverture : les tests le remplacent par un mock, il n'y a pas de logique ici.
+ */
+@Generated
 @Service
 public class OpenRouteServiceClient {
-    private final RestTemplate rest = new RestTemplate();
-    private final String orsBaseUrl = "https://api.openrouteservice.org";
-    @Value("${ORS_KEY:toto}") // environnment variable
-    private String orskey;
+
+    private static final String PROFILE = "driving-car";
+
+    private final RestTemplate rest;
+    private final String baseUrl;
+    private final String apiKey;
+
+    public OpenRouteServiceClient(
+        @Value("${app.ors.base-url:https://api.openrouteservice.org}") String baseUrl,
+        @Value("${app.ors.api-key:}") String apiKey,
+        @Value("${app.ors.timeout:PT60S}") Duration timeout
+    ) {
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(timeout);
+        requestFactory.setReadTimeout(timeout);
+        this.rest = new RestTemplate(requestFactory);
+        this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+        this.apiKey = apiKey;
+    }
+
     public MatrixResponse getMatrix(List<Adresse> locations, int[] sources, int[] destinations) {
-
-        // Build request payload similar to client implementation
-        Map<String, Object> req = new HashMap<>();
-        double[][] locs = new double[locations.size()][];
-        for (int i = 0; i < locations.size(); i++) {
-            locs[i] = new double[]{locations.get(i).coords.lng, locations.get(i).coords.lat};
-        }
-        req.put("locations", locs);
-        req.put("units", "m");
-        req.put("metrics", new String[]{"duration", "distance"});
-        req.put("sources", sources);
-        req.put("destinations", destinations);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", orskey);
-        HttpEntity<Map<String,Object>> entity = new HttpEntity<>(req, headers);
-
-        // Call external ORS API and map to MatrixResponse
-        return rest.postForObject(orsBaseUrl + "/v2/matrix/driving-car", entity, MatrixResponse.class);
+        Map<String, Object> body = Map.of(
+            "locations", locations.stream().map(a -> new double[]{a.coords.lng, a.coords.lat}).toList(),
+            "units", "m",
+            "metrics", List.of("duration", "distance"),
+            "sources", sources,
+            "destinations", destinations
+        );
+        return rest.postForObject(baseUrl + "/v2/matrix/" + PROFILE, request(body), MatrixResponse.class);
     }
 
     public OptimizationResult optimize(Object payload) {
-        // Optimization request to ORS optimization endpoint
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", orskey);
-        HttpEntity<Object> entity = new HttpEntity<>(payload, headers);
-        return rest.postForObject(orsBaseUrl + "/optimization", entity, OptimizationResult.class);
+        return rest.postForObject(baseUrl + "/optimization", request(payload), OptimizationResult.class);
     }
 
     public DirectionsResponse getDirections(List<double[]> coordinates) {
-        // Build request payload for directions API
-        Map<String, Object> req = new HashMap<>();
-        req.put("coordinates", coordinates);
-        req.put("profile", "driving-car");
-        req.put("format", "geojson");
+        Map<String, Object> body = Map.of("coordinates", coordinates);
+        return rest.postForObject(baseUrl + "/v2/directions/" + PROFILE + "/geojson", request(body), DirectionsResponse.class);
+    }
 
+    private HttpEntity<Object> request(Object body) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", orskey);
-        HttpEntity<Map<String,Object>> entity = new HttpEntity<>(req, headers);
-
-        return rest.postForObject(orsBaseUrl + "/v2/directions/driving-car/geojson", entity, DirectionsResponse.class);
+        if (apiKey != null && !apiKey.isBlank()) {
+            headers.set(HttpHeaders.AUTHORIZATION, apiKey);
+        }
+        return new HttpEntity<>(body, headers);
     }
 }

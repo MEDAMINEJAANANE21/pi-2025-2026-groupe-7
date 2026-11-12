@@ -1,6 +1,6 @@
 package fr.uga.miage.l3.controllers;
 
-import fr.uga.miage.l3.exceptions.rest.BadRequestRestException;
+import fr.uga.miage.l3.exceptions.InvalidRequestException;
 import fr.uga.miage.l3.mappers.CoordsMapper;
 import fr.uga.miage.l3.services.DirectionsService;
 import fr.uga.miage.l3.request.RouteRequest;
@@ -19,7 +19,7 @@ public class RouteController implements RouteEndpoints {
     @Override
     public RouteResponsesDTO getRoute(RouteRequest request) {
         if (request.adresses() == null) {
-            throw new BadRequestRestException("Le corps du request doit contenir une liste d'adresses");
+            throw new InvalidRequestException("Le corps du request doit contenir une liste d'adresses");
         }
         return new RouteResponsesDTO(coordsMapper.toCoordonneeDTOList(
             directionsService.getDirectionsFromCoords(

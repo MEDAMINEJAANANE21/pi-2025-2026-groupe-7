@@ -1,13 +1,23 @@
 package fr.uga.miage.l3.models.entities;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -30,6 +40,9 @@ public class LivraisonEntity {
     @Builder.Default
     private boolean livree = false;
 
+    /** Horodatage de la remise au client, renseigné quand {@link #livree} passe à vrai. */
+    private LocalDateTime dateLivraison;
+
     @Column(nullable = false)
     @ColumnDefault("0.0")
     @Builder.Default
@@ -45,7 +58,12 @@ public class LivraisonEntity {
     @ManyToMany(mappedBy = "livraisonEntities")
     private Set<TourneeEntity> tourneeEntities;
 
-
-    @ManyToOne
+    @ManyToOne(optional = false)
+    @JoinColumn(nullable = false)
     private AdresseEntity adresseEntity;
+
+    public void marquerLivree(boolean estLivree, LocalDateTime quand) {
+        this.livree = estLivree;
+        this.dateLivraison = estLivree ? quand : null;
+    }
 }

@@ -1,6 +1,6 @@
 package fr.uga.miage.l3.mappers;
 
-import fr.uga.miage.l3.exceptions.rest.BadRequestRestException;
+import fr.uga.miage.l3.exceptions.InvalidRequestException;
 import fr.uga.miage.l3.models.entities.Strategie;
 import fr.uga.miage.l3.request.StrategieRequestDTO;
 import org.mapstruct.Mapper;
@@ -30,7 +30,7 @@ public interface StrategieMapper {
     try {
       return Duration.parse(value.trim());
     } catch (DateTimeParseException ex) {
-      throw new BadRequestRestException("maxTempsParVehicule must use ISO-8601 duration format (example: PT2H30M)");
+      throw new InvalidRequestException("maxTempsParVehicule doit être une durée ISO-8601 (ex. PT2H30M)");
     }
   }
 }

@@ -3,6 +3,7 @@ package fr.uga.miage.l3.services;
 import fr.uga.miage.l3.models.core.DirectionsResponse;
 import fr.uga.miage.l3.models.core.Coords;
 import fr.uga.miage.l3.services.core.OpenRouteServiceClient;
+import fr.uga.miage.l3.services.core.OrsMode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DirectionsService {
     private final OpenRouteServiceClient orsClient;
+    private final OrsMode orsMode;
 
     private static final int COORDINATES_LIMIT_PER_REQUEST = 50;
 
@@ -30,6 +32,10 @@ public class DirectionsService {
             log.warn("Invalid coordinates provided for directions: {}",
                 coordinates == null ? "null" : coordinates.size());
             return new ArrayList<>();
+        }
+        if (orsMode.estimation()) {
+            // Sans service d'itinéraire, on relie les arrêts en ligne droite.
+            return coordinates.stream().map(c -> Coords.builder().lng(c[0]).lat(c[1]).build()).toList();
         }
 
         List<Coords> allRoutePoints = new ArrayList<>();

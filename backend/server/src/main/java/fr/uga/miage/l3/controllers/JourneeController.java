@@ -1,85 +1,63 @@
 package fr.uga.miage.l3.controllers;
 
+import fr.uga.miage.l3.component.JourneeComponent;
+import fr.uga.miage.l3.component.SolutionComponent;
 import fr.uga.miage.l3.endpoints.JourneeEndpoints;
-import fr.uga.miage.l3.exceptions.rest.BadRequestRestException;
-import fr.uga.miage.l3.exceptions.rest.NotFoundElementRestException;
+import fr.uga.miage.l3.exceptions.ResourceNotFoundException;
 import fr.uga.miage.l3.mappers.JourneeMapper;
 import fr.uga.miage.l3.mappers.SolutionMapper;
-import fr.uga.miage.l3.mappers.SolutionStatisticsMapper;
 import fr.uga.miage.l3.models.entities.JourneeEntity;
-import fr.uga.miage.l3.component.SolutionComponent;
-import fr.uga.miage.l3.repository.JourneeRepository;
 import fr.uga.miage.l3.request.StrategieRequestDTO;
 import fr.uga.miage.l3.responses.JourneeResponseDTO;
+import fr.uga.miage.l3.responses.JourneeResumeDTO;
 import fr.uga.miage.l3.responses.SolutionResponseDTO;
 import fr.uga.miage.l3.responses.SolutionStatisticsResponseDTO;
-import fr.uga.miage.l3.services.OptimisationPipelineService;
-import fr.uga.miage.l3.component.JourneeComponent;
-
+import fr.uga.miage.l3.services.optimisation.OptimisationPipelineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
-import java.util.Set;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 public class JourneeController implements JourneeEndpoints {
 
-  private final JourneeComponent journeeComponent;
-  private final SolutionComponent solutionComponent;
-  private final JourneeMapper journeeMapper;
-  private final OptimisationPipelineService optimisationPipelineService;
-  private final SolutionStatisticsMapper solutionStatisticsMapper;
-  private final JourneeRepository journeeRepository;
-  private final SolutionMapper solutionMapper;
+    private final JourneeComponent journeeComponent;
+    private final SolutionComponent solutionComponent;
+    private final OptimisationPipelineService optimisationPipelineService;
+    private final JourneeMapper journeeMapper;
+    private final SolutionMapper solutionMapper;
 
-  @Override
-  public JourneeResponseDTO getJournee(String date) {
-    LocalDate parsedDate = parseDate(date);
-
-    JourneeEntity journee = journeeComponent.getOrCreate(parsedDate);
-
-    return journeeMapper.toDto(journee);
-  }
-
-  @Override
-  public Set<SolutionStatisticsResponseDTO> getJourneeSolutions(String date) {
-    LocalDate parsedDate = parseDate(date);
-    return solutionComponent.getStatisticsByDate(parsedDate)
-        .stream()
-        .map(solutionStatisticsMapper::toDto)
-        .collect(java.util.stream.Collectors.toSet());
-  }
-
-  @Override
-  public JourneeResponseDTO startJourneeOptimization(String date, StrategieRequestDTO request) {
-    LocalDate parsedDate = parseDate(date);
-    JourneeEntity journee = optimisationPipelineService.startJourneeOptimization(parsedDate, request);
-    return journeeMapper.toDto(journee);
-  }
-
-  @Override
-  public SolutionResponseDTO getJourneeSolutionChoisie(String date) {
-    LocalDate parsedDate = parseDate(date);
-    JourneeEntity journee = journeeRepository.findById(parsedDate).orElse(null);
-    if (journee == null || journee.getSolutionEntity() == null) {
-      throw new NotFoundElementRestException("Aucune solution choisie pour cette journée");
-    }
-    return solutionMapper.toSolutionResponseDTO(journee.getSolutionEntity());
-  }
-
-  private LocalDate parseDate(String date) {
-    if (date == null || date.isBlank()) {
-      throw new BadRequestRestException("date path param must be provided with format yyyy-MM-dd");
+    @Override
+    public List<JourneeResumeDTO> getJournees(String debut, String fin) {
+        return journeeComponent.calendrier(Dates.parse(debut), Dates.parse(fin)).stream()
+            .map(resume -> journeeMapper.toResume(resume.journee(), resume.nbSolutions()))
+            .toList();
     }
 
-    try {
-      return LocalDate.parse(date);
-    } catch (DateTimeParseException ex) {
-      throw new BadRequestRestException("Invalid date format, expected yyyy-MM-dd");
+    @Override
+    public JourneeResponseDTO getJournee(String date) {
+        return journeeMapper.toDto(journeeComponent.find(Dates.parse(date)));
     }
-  }
 
+    @Override
+    public List<SolutionStatisticsResponseDTO> getJourneeSolutions(String date) {
+        return solutionComponent.findByDate(Dates.parse(date)).stream()
+            .map(solutionMapper::statisticsOf)
+            .toList();
+    }
+
+    @Override
+    public JourneeResponseDTO startJourneeOptimization(String date, StrategieRequestDTO request) {
+        return journeeMapper.toDto(optimisationPipelineService.start(Dates.parse(date), request));
+    }
+
+    @Override
+    public SolutionResponseDTO getJourneeSolutionChoisie(String date) {
+        JourneeEntity journee = journeeComponent.find(Dates.parse(date));
+        if (journee.getSolutionEntity() == null) {
+            throw new ResourceNotFoundException("Aucune solution choisie pour cette journée");
+        }
+        return solutionMapper.toDto(journee.getSolutionEntity());
+    }
 }
