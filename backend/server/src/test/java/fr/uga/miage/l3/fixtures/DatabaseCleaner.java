@@ -5,6 +5,7 @@ import fr.uga.miage.l3.repository.ChauffeurRepository;
 import fr.uga.miage.l3.repository.JourneeRepository;
 import fr.uga.miage.l3.repository.LivraisonRepository;
 import fr.uga.miage.l3.repository.ParkingRepository;
+import fr.uga.miage.l3.repository.PhotoRepository;
 import fr.uga.miage.l3.repository.SolutionRepository;
 import fr.uga.miage.l3.repository.TourneeRepository;
 import fr.uga.miage.l3.repository.VehiculeRepository;
@@ -26,6 +27,7 @@ public class DatabaseCleaner {
     private final AdresseRepository adresseRepository;
     private final ChauffeurRepository chauffeurRepository;
     private final VehiculeRepository vehiculeRepository;
+    private final PhotoRepository photoRepository;
 
     public void clean() {
         // Suppressions en masse : elles ne chargent pas les entités, donc pas de références « orphelines »
@@ -39,5 +41,6 @@ public class DatabaseCleaner {
         adresseRepository.deleteAllInBatch();
         chauffeurRepository.deleteAllInBatch();
         vehiculeRepository.deleteAllInBatch();
+        photoRepository.deleteAllInBatch();
     }
 }

@@ -2,88 +2,147 @@
   <header class="page-header">
     <div class="page-title">
       <h1>Équipe</h1>
-      <p class="page-meta">Chauffeurs et véhicules à affecter aux tournées. Le taux horaire et la consommation servent au calcul des coûts.</p>
+      <p class="page-meta">Les personnes et les véhicules à qui confier les tournées. Le taux horaire et la consommation servent au calcul des coûts.</p>
+    </div>
+    <div class="actions">
+      <button class="btn" type="button" (click)="demo.open()"><app-icon name="database" /> Jeu d'essai</button>
     </div>
   </header>
 
-  <div class="columns">
-    <section class="card">
-      <div class="card-header">
-        <h2>Chauffeurs</h2>
-        <button class="btn small" type="button" (click)="editChauffeur(null)"><app-icon name="plus" /> Ajouter</button>
-      </div>
-      @if (chauffeurs().length) {
-        <table class="table">
-          <thead><tr><th>Nom</th><th>Téléphone</th><th class="right">Taux horaire</th><th><span class="sr-only">Actions</span></th></tr></thead>
-          <tbody>
-            @for (c of chauffeurs(); track c.id) {
-              <tr [class.inactive]="!c.actif">
-                <td>{{ c.prenom }} {{ c.nom }} @if (!c.actif) { <span class="tag">Inactif</span> }</td>
-                <td class="num secondary">{{ c.telephone || '—' }}</td>
-                <td class="right num">{{ c.tauxHoraire ? euros(c.tauxHoraire) + ' / h' : 'Par défaut' }}</td>
-                <td class="right">
-                  <div class="row-actions">
-                    <button class="btn small ghost icon-only" type="button" aria-label="Modifier" (click)="editChauffeur(c)"><app-icon name="pencil" /></button>
-                    <button class="btn small ghost icon-only danger" type="button" aria-label="Supprimer" (click)="removeChauffeur(c)"><app-icon name="trash" /></button>
-                  </div>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      } @else {
-        <div class="empty"><h3>Aucun chauffeur</h3><p>Ajoutez les chauffeurs pour les affecter aux tournées.</p></div>
-      }
-    </section>
+  <section class="stats" aria-label="Synthèse de l'équipe">
+    <div class="card stat">
+      <span class="label">Chauffeurs disponibles</span>
+      <span class="value">{{ disponibles() }}<small> / {{ chauffeurs().length }}</small></span>
+    </div>
+    <div class="card stat">
+      <span class="label">Véhicules en service</span>
+      <span class="value">{{ enService().length }}<small> / {{ vehicules().length }}</small></span>
+    </div>
+    <div class="card stat">
+      <span class="label">Charge utile de la flotte</span>
+      <span class="value accent">{{ integer(capaciteTotale()) }}<small> kg</small></span>
+      <span class="detail">Véhicules en service uniquement</span>
+    </div>
+  </section>
 
-    <section class="card">
-      <div class="card-header">
-        <h2>Véhicules</h2>
-        <button class="btn small" type="button" (click)="editVehicule(null)"><app-icon name="plus" /> Ajouter</button>
+  <section class="group" aria-labelledby="chauffeurs-title">
+    <div class="group-header">
+      <h2 id="chauffeurs-title">Chauffeurs</h2>
+      <button class="btn small" type="button" (click)="editChauffeur(null)"><app-icon name="plus" /> Ajouter un chauffeur</button>
+    </div>
+
+    @if (chauffeurs().length) {
+      <ul class="grid people">
+        @for (c of chauffeurs(); track c.id) {
+          <li class="card person" [class.inactive]="!c.actif">
+            <app-avatar [name]="fullName(c)" [photoUrl]="c.photoUrl" [size]="56" [inactive]="!c.actif" />
+            <div class="identity">
+              <h3>{{ fullName(c) }}</h3>
+              <span class="status" [class.done]="c.actif">{{ c.actif ? 'Disponible' : 'Indisponible' }}</span>
+            </div>
+            <dl class="facts">
+              <div>
+                <dt><app-icon name="euro" [size]="14" /> Taux horaire</dt>
+                <dd class="num">{{ c.tauxHoraire ? euros(c.tauxHoraire) + ' / h' : 'Par défaut' }}</dd>
+              </div>
+              <div>
+                <dt><app-icon name="phone" [size]="14" /> Téléphone</dt>
+                <dd class="num">
+                  @if (c.telephone) { <a [href]="'tel:' + c.telephone">{{ c.telephone }}</a> } @else { — }
+                </dd>
+              </div>
+            </dl>
+            <div class="card-actions">
+              <button class="btn small ghost" type="button" (click)="editChauffeur(c)"><app-icon name="pencil" /> Modifier</button>
+              <button class="btn small ghost icon-only danger" type="button" [attr.aria-label]="'Supprimer ' + fullName(c)" (click)="removeChauffeur(c)">
+                <app-icon name="trash" />
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    } @else if (loaded()) {
+      <div class="card empty">
+        <h3>Aucun chauffeur</h3>
+        <p>Ajoutez les chauffeurs pour leur confier des tournées et calculer leur coût réel.</p>
+        <button class="btn primary" type="button" (click)="editChauffeur(null)"><app-icon name="plus" /> Ajouter un chauffeur</button>
       </div>
-      @if (vehicules().length) {
-        <table class="table">
-          <thead><tr><th>Immatriculation</th><th>Modèle</th><th class="right">Charge utile</th><th class="right">Conso.</th><th><span class="sr-only">Actions</span></th></tr></thead>
-          <tbody>
-            @for (v of vehicules(); track v.id) {
-              <tr [class.inactive]="!v.actif">
-                <td class="mono plate">{{ v.immatriculation }} @if (!v.actif) { <span class="tag">Inactif</span> }</td>
-                <td class="secondary">{{ v.modele || '—' }}</td>
-                <td class="right num">{{ v.capaciteKg ? integer(v.capaciteKg) + ' kg' : '—' }}</td>
-                <td class="right num">{{ v.consommationLitresAux100Km ? decimal(v.consommationLitresAux100Km) + ' L/100 km' : '—' }}</td>
-                <td class="right">
-                  <div class="row-actions">
-                    <button class="btn small ghost icon-only" type="button" aria-label="Modifier" (click)="editVehicule(v)"><app-icon name="pencil" /></button>
-                    <button class="btn small ghost icon-only danger" type="button" aria-label="Supprimer" (click)="removeVehicule(v)"><app-icon name="trash" /></button>
-                  </div>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      } @else {
-        <div class="empty"><h3>Aucun véhicule</h3><p>Renseignez la charge utile pour être prévenu d'un chargement trop lourd.</p></div>
-      }
-    </section>
-  </div>
+    }
+  </section>
+
+  <section class="group" aria-labelledby="vehicules-title">
+    <div class="group-header">
+      <h2 id="vehicules-title">Véhicules</h2>
+      <button class="btn small" type="button" (click)="editVehicule(null)"><app-icon name="plus" /> Ajouter un véhicule</button>
+    </div>
+
+    @if (vehicules().length) {
+      <ul class="grid fleet">
+        @for (v of vehicules(); track v.id) {
+          <li class="card vehicle" [class.inactive]="!v.actif">
+            <div class="picture">
+              @if (v.photoUrl) {
+                <img [src]="v.photoUrl" [alt]="v.modele || v.immatriculation" loading="lazy" />
+              } @else {
+                <span class="placeholder"><app-icon name="truck" [size]="32" /></span>
+              }
+              <app-license-plate class="plate" [value]="v.immatriculation" />
+            </div>
+            <div class="vehicle-body">
+              <div class="identity">
+                <h3>{{ v.modele || 'Modèle non renseigné' }}</h3>
+                <span class="status" [class.done]="v.actif">{{ v.actif ? 'En service' : 'Hors service' }}</span>
+              </div>
+              <dl class="facts">
+                <div>
+                  <dt><app-icon name="weight" [size]="14" /> Charge utile</dt>
+                  <dd class="num">{{ v.capaciteKg ? integer(v.capaciteKg) + ' kg' : '—' }}</dd>
+                </div>
+                <div>
+                  <dt><app-icon name="fuel" [size]="14" /> Consommation</dt>
+                  <dd class="num">{{ v.consommationLitresAux100Km ? decimal(v.consommationLitresAux100Km) + ' L/100 km' : 'Par défaut' }}</dd>
+                </div>
+              </dl>
+              <div class="card-actions">
+                <button class="btn small ghost" type="button" (click)="editVehicule(v)"><app-icon name="pencil" /> Modifier</button>
+                <button class="btn small ghost icon-only danger" type="button" [attr.aria-label]="'Supprimer ' + v.immatriculation" (click)="removeVehicule(v)">
+                  <app-icon name="trash" />
+                </button>
+              </div>
+            </div>
+          </li>
+        }
+      </ul>
+    } @else if (loaded()) {
+      <div class="card empty">
+        <h3>Aucun véhicule</h3>
+        <p>Renseignez la charge utile pour être prévenu d'un chargement trop lourd.</p>
+        <button class="btn primary" type="button" (click)="editVehicule(null)"><app-icon name="plus" /> Ajouter un véhicule</button>
+      </div>
+    }
+  </section>
 </div>
+
+<app-demo-dialog #demo (loaded)="reload()" />
 
 <dialog #chauffeurDialog class="dialog">
   <form (ngSubmit)="saveChauffeur()">
-    <header><h2>{{ chauffeurId() ? 'Modifier le chauffeur' : 'Nouveau chauffeur' }}</h2></header>
+    <header><h2>{{ editedChauffeur() ? 'Modifier le chauffeur' : 'Nouveau chauffeur' }}</h2></header>
     <div class="dialog-body form-grid">
+      <app-photo-picker #chauffeurPhoto class="span-2" shape="round" label="Photo du chauffeur"
+                        [current]="editedChauffeur()?.photoUrl ?? null" (changed)="photoChange.set($event)" />
       <label class="field"><span>Prénom</span>
-        <input class="input" name="prenom" required [ngModel]="chauffeur().prenom" (ngModelChange)="patchChauffeur({ prenom: $event })" /></label>
+        <input class="input" name="prenom" required autocomplete="given-name" [ngModel]="chauffeur().prenom" (ngModelChange)="patchChauffeur({ prenom: $event })" /></label>
       <label class="field"><span>Nom</span>
-        <input class="input" name="nom" required [ngModel]="chauffeur().nom" (ngModelChange)="patchChauffeur({ nom: $event })" /></label>
+        <input class="input" name="nom" required autocomplete="family-name" [ngModel]="chauffeur().nom" (ngModelChange)="patchChauffeur({ nom: $event })" /></label>
       <label class="field"><span>Téléphone</span>
-        <input class="input" name="telephone" type="tel" [ngModel]="chauffeur().telephone" (ngModelChange)="patchChauffeur({ telephone: $event || null })" /></label>
+        <input class="input" name="telephone" type="tel" autocomplete="tel" placeholder="06 12 34 56 78" [ngModel]="chauffeur().telephone" (ngModelChange)="patchChauffeur({ telephone: $event || null })" /></label>
       <label class="field"><span>Taux horaire chargé</span>
         <div class="input-suffix">
-          <input class="input num" name="taux" type="number" min="0" step="0.5" [ngModel]="chauffeur().tauxHoraire" (ngModelChange)="patchChauffeur({ tauxHoraire: $event })" />
+          <input class="input num" name="taux" type="number" min="0" max="200" step="0.5" placeholder="22" [ngModel]="chauffeur().tauxHoraire" (ngModelChange)="patchChauffeur({ tauxHoraire: $event })" />
           <em>€/h</em>
         </div>
-        <span class="hint">Vide = taux par défaut</span>
+        <span class="hint">Vide = taux par défaut de l'entreprise</span>
       </label>
       <label class="checkbox span-2">
         <input type="checkbox" name="actif" [ngModel]="chauffeur().actif" (ngModelChange)="patchChauffeur({ actif: $event })" />
@@ -93,28 +152,30 @@
     </div>
     <footer>
       <button class="btn" type="button" (click)="chauffeurDialog.close()">Annuler</button>
-      <button class="btn primary" type="submit">Enregistrer</button>
+      <button class="btn primary" type="submit" [disabled]="saving()">{{ saving() ? 'Enregistrement…' : 'Enregistrer' }}</button>
     </footer>
   </form>
 </dialog>
 
 <dialog #vehiculeDialog class="dialog">
   <form (ngSubmit)="saveVehicule()">
-    <header><h2>{{ vehiculeId() ? 'Modifier le véhicule' : 'Nouveau véhicule' }}</h2></header>
+    <header><h2>{{ editedVehicule() ? 'Modifier le véhicule' : 'Nouveau véhicule' }}</h2></header>
     <div class="dialog-body form-grid">
+      <app-photo-picker #vehiculePhoto class="span-2" label="Photo du véhicule"
+                        [current]="editedVehicule()?.photoUrl ?? null" (changed)="photoChange.set($event)" />
       <label class="field"><span>Immatriculation</span>
-        <input class="input mono-input" name="immatriculation" required placeholder="AB-123-CD"
+        <input class="input plate-input" name="immatriculation" required placeholder="AB-123-CD"
                [ngModel]="vehicule().immatriculation" (ngModelChange)="patchVehicule({ immatriculation: $event })" /></label>
       <label class="field"><span>Modèle</span>
         <input class="input" name="modele" placeholder="Renault Master" [ngModel]="vehicule().modele" (ngModelChange)="patchVehicule({ modele: $event || null })" /></label>
       <label class="field"><span>Charge utile</span>
         <div class="input-suffix">
-          <input class="input num" name="capacite" type="number" min="0" [ngModel]="vehicule().capaciteKg" (ngModelChange)="patchVehicule({ capaciteKg: $event })" />
+          <input class="input num" name="capacite" type="number" min="0" max="44000" placeholder="1200" [ngModel]="vehicule().capaciteKg" (ngModelChange)="patchVehicule({ capaciteKg: $event })" />
           <em>kg</em>
         </div></label>
       <label class="field"><span>Consommation</span>
         <div class="input-suffix">
-          <input class="input num" name="conso" type="number" min="0" step="0.1" [ngModel]="vehicule().consommationLitresAux100Km"
+          <input class="input num" name="conso" type="number" min="0" max="60" step="0.1" placeholder="9,5" [ngModel]="vehicule().consommationLitresAux100Km"
                  (ngModelChange)="patchVehicule({ consommationLitresAux100Km: $event })" />
           <em>L/100</em>
         </div></label>
@@ -126,7 +187,7 @@
     </div>
     <footer>
       <button class="btn" type="button" (click)="vehiculeDialog.close()">Annuler</button>
-      <button class="btn primary" type="submit">Enregistrer</button>
+      <button class="btn primary" type="submit" [disabled]="saving()">{{ saving() ? 'Enregistrement…' : 'Enregistrer' }}</button>
     </footer>
   </form>
 </dialog>

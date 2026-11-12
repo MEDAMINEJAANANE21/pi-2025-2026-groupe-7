@@ -10,6 +10,11 @@ spring:
         username: ${DB_USERNAME:postgres}
         password: ${DB_PASSWORD:postgres}
         url: ${DB_URL:jdbc:postgresql://localhost:5432/local}
+    servlet:
+        multipart:
+            # Photos de l'équipe : 3 Mo par fichier, contrôlé aussi par PhotoFactory.
+            max-file-size: 3MB
+            max-request-size: 4MB
     jpa:
         database-platform: org.hibernate.dialect.PostgreSQLDialect
         # Les mappers parcourent des relations paresseuses après la sortie du service.

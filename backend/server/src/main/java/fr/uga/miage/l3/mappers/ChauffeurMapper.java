@@ -10,9 +10,11 @@ import org.mapstruct.MappingTarget;
 @Mapper(componentModel = "spring")
 public interface ChauffeurMapper {
 
+    @Mapping(target = "photoUrl", expression = "java(PhotoUrls.of(\"chauffeurs\", entity.getId(), entity.getPhoto()))")
     ChauffeurDTO toDto(ChauffeurEntity entity);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "photo", ignore = true)
     @Mapping(target = "actif", expression = "java(request.actif() == null || request.actif())")
     void update(@MappingTarget ChauffeurEntity entity, ChauffeurRequest request);
 }

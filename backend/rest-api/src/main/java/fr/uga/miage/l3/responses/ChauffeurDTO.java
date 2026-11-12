@@ -9,6 +9,7 @@ public record ChauffeurDTO(
     String nom,
     String telephone,
     @Schema(description = "Coût horaire chargé en euros, nul = taux par défaut") Double tauxHoraire,
-    boolean actif
+    boolean actif,
+    @Schema(description = "Adresse de la photo, nulle s'il n'y en a pas") String photoUrl
 ) {
 }

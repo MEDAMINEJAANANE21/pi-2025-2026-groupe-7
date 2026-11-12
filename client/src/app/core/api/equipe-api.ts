@@ -34,4 +34,26 @@ export class EquipeApi {
   deleteVehicule(id: number): Promise<void> {
     return this.api.delete(`/vehicules/${id}`);
   }
+
+  envoyerPhotoChauffeur(id: number, photo: File): Promise<Chauffeur> {
+    return this.api.put(`/chauffeurs/${id}/photo`, ChauffeurSchema, formData(photo));
+  }
+
+  retirerPhotoChauffeur(id: number): Promise<Chauffeur> {
+    return this.api.deleteFor(`/chauffeurs/${id}/photo`, ChauffeurSchema);
+  }
+
+  envoyerPhotoVehicule(id: number, photo: File): Promise<Vehicule> {
+    return this.api.put(`/vehicules/${id}/photo`, VehiculeSchema, formData(photo));
+  }
+
+  retirerPhotoVehicule(id: number): Promise<Vehicule> {
+    return this.api.deleteFor(`/vehicules/${id}/photo`, VehiculeSchema);
+  }
+}
+
+function formData(photo: File): FormData {
+  const body = new FormData();
+  body.append('photo', photo, photo.name);
+  return body;
 }

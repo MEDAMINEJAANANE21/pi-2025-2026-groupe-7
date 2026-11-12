@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.util.stream.Collectors;
 
@@ -39,6 +41,18 @@ public class PIExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     ErrorDTO badRequest(HttpServletRequest request, Exception ex) {
         return error(request, ex.getMessage());
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    ErrorDTO fileTooLarge(HttpServletRequest request) {
+        return error(request, "La photo dépasse 3 Mo");
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    ErrorDTO missingFile(HttpServletRequest request) {
+        return error(request, "Aucune photo reçue");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

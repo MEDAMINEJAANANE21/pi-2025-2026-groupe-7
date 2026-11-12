@@ -14,7 +14,12 @@ import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.BodyInserters;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -118,6 +123,84 @@ class EquipeEndpointsTest {
         void refuseUneCapaciteNegative() {
             webClient.post().uri("/api/vehicules").bodyValue(new VehiculeRequest("ZZ-999-ZZ", null, -1.0, null, null))
                 .exchange().expectStatus().isBadRequest();
+        }
+    }
+
+    @Nested
+    class Photos {
+
+        private static final byte[] PNG = {(byte) 0x89, 'P', 'N', 'G', '\r', '\n', 0x1A, '\n', 0, 0, 0, 13};
+
+        @Test
+        void ajouteAfficheEtRetireLaPhotoDUnChauffeur() {
+            ChauffeurDTO lea = webClient.post().uri("/api/chauffeurs").bodyValue(new ChauffeurRequest("Léa", "Martin", null, null, null))
+                .exchange().expectStatus().isCreated()
+                .expectBody(ChauffeurDTO.class).returnResult().getResponseBody();
+            assertThat(lea.photoUrl()).isNull();
+
+            ChauffeurDTO avecPhoto = upload("/api/chauffeurs/" + lea.id() + "/photo", PNG)
+                .expectStatus().isOk()
+                .expectBody(ChauffeurDTO.class).returnResult().getResponseBody();
+            assertThat(avecPhoto.photoUrl()).startsWith("/api/chauffeurs/" + lea.id() + "/photo?v=");
+
+            webClient.get().uri(avecPhoto.photoUrl()).exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.IMAGE_PNG)
+                .expectHeader().value(HttpHeaders.CACHE_CONTROL, value -> assertThat(value).contains("max-age"))
+                .expectBody(byte[].class).isEqualTo(PNG);
+
+            webClient.delete().uri("/api/chauffeurs/" + lea.id() + "/photo").exchange()
+                .expectStatus().isOk()
+                .expectBody(ChauffeurDTO.class)
+                .value(sansPhoto -> assertThat(sansPhoto.photoUrl()).isNull());
+            webClient.get().uri("/api/chauffeurs/" + lea.id() + "/photo").exchange().expectStatus().isNotFound();
+        }
+
+        @Test
+        void uneNouvellePhotoChangeLAdresse() {
+            VehiculeDTO master = webClient.post().uri("/api/vehicules").bodyValue(new VehiculeRequest("GE-421-KT", null, null, null, null))
+                .exchange().expectStatus().isCreated()
+                .expectBody(VehiculeDTO.class).returnResult().getResponseBody();
+
+            String premiere = upload("/api/vehicules/" + master.id() + "/photo", PNG)
+                .expectBody(VehiculeDTO.class).returnResult().getResponseBody().photoUrl();
+            String seconde = upload("/api/vehicules/" + master.id() + "/photo", PNG)
+                .expectBody(VehiculeDTO.class).returnResult().getResponseBody().photoUrl();
+
+            assertThat(seconde).isNotEqualTo(premiere);
+            webClient.get().uri("/api/vehicules").exchange()
+                .expectBodyList(VehiculeDTO.class)
+                .value(list -> assertThat(list.get(0).photoUrl()).isEqualTo(seconde));
+        }
+
+        @Test
+        void refuseUnFichierQuiNEstPasUneImage() {
+            ChauffeurDTO hugo = webClient.post().uri("/api/chauffeurs").bodyValue(new ChauffeurRequest("Hugo", "Bernard", null, null, null))
+                .exchange().expectBody(ChauffeurDTO.class).returnResult().getResponseBody();
+
+            upload("/api/chauffeurs/" + hugo.id() + "/photo", "pas une image".getBytes())
+                .expectStatus().isBadRequest()
+                .expectBody(ErrorDTO.class)
+                .value(error -> assertThat(error.message()).contains("JPEG, PNG ou WebP"));
+        }
+
+        @Test
+        void photoDUnChauffeurInconnu() {
+            upload("/api/chauffeurs/999999/photo", PNG).expectStatus().isNotFound();
+        }
+
+        private WebTestClient.ResponseSpec upload(String uri, byte[] content) {
+            MultipartBodyBuilder body = new MultipartBodyBuilder();
+            body.part("photo", new ByteArrayResource(content) {
+                @Override
+                public String getFilename() {
+                    return "photo.png";
+                }
+            }).contentType(MediaType.IMAGE_PNG);
+            return webClient.put().uri(uri)
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(BodyInserters.fromMultipartData(body.build()))
+                .exchange();
         }
     }
 }

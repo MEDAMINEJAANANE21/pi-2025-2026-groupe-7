@@ -77,6 +77,7 @@ export const ChauffeurSchema = z.object({
   telephone: z.string().nullable(),
   tauxHoraire: z.number().nullable(),
   actif: z.boolean(),
+  photoUrl: z.string().nullable(),
 });
 export type Chauffeur = z.infer<typeof ChauffeurSchema>;
 
@@ -87,6 +88,7 @@ export const VehiculeSchema = z.object({
   capaciteKg: z.number().nullable(),
   consommationLitresAux100Km: z.number().nullable(),
   actif: z.boolean(),
+  photoUrl: z.string().nullable(),
 });
 export type Vehicule = z.infer<typeof VehiculeSchema>;
 

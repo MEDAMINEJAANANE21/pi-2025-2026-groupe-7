@@ -6,7 +6,9 @@ import fr.uga.miage.l3.mappers.VehiculeMapper;
 import fr.uga.miage.l3.request.VehiculeRequest;
 import fr.uga.miage.l3.responses.VehiculeDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -35,5 +37,20 @@ public class VehiculeController implements VehiculeEndpoints {
     @Override
     public void deleteVehicule(Long id) {
         equipeComponent.deleteVehicule(id);
+    }
+
+    @Override
+    public VehiculeDTO uploadVehiculePhoto(Long id, MultipartFile photo) {
+        return vehiculeMapper.toDto(equipeComponent.setVehiculePhoto(id, photo));
+    }
+
+    @Override
+    public ResponseEntity<byte[]> getVehiculePhoto(Long id) {
+        return PhotoResponses.of(equipeComponent.vehiculePhoto(id));
+    }
+
+    @Override
+    public VehiculeDTO deleteVehiculePhoto(Long id) {
+        return vehiculeMapper.toDto(equipeComponent.removeVehiculePhoto(id));
     }
 }

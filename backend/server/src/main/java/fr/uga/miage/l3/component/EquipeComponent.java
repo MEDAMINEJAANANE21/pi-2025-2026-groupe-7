@@ -5,14 +5,17 @@ import fr.uga.miage.l3.exceptions.ResourceNotFoundException;
 import fr.uga.miage.l3.mappers.ChauffeurMapper;
 import fr.uga.miage.l3.mappers.VehiculeMapper;
 import fr.uga.miage.l3.models.entities.ChauffeurEntity;
+import fr.uga.miage.l3.models.entities.PhotoEntity;
 import fr.uga.miage.l3.models.entities.VehiculeEntity;
 import fr.uga.miage.l3.repository.ChauffeurRepository;
 import fr.uga.miage.l3.repository.VehiculeRepository;
 import fr.uga.miage.l3.request.ChauffeurRequest;
 import fr.uga.miage.l3.request.VehiculeRequest;
+import fr.uga.miage.l3.services.PhotoFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -28,6 +31,7 @@ public class EquipeComponent {
     private final ChauffeurMapper chauffeurMapper;
     private final VehiculeMapper vehiculeMapper;
     private final TourneeComponent tourneeComponent;
+    private final PhotoFactory photoFactory;
 
     public List<ChauffeurEntity> chauffeurs() {
         return chauffeurRepository.findAllByOrderByNomAscPrenomAsc();
@@ -70,6 +74,53 @@ public class EquipeComponent {
         VehiculeEntity vehicule = vehicule(id);
         tourneeComponent.detachVehicule(id);
         vehiculeRepository.delete(vehicule);
+    }
+
+    @Transactional
+    public ChauffeurEntity setChauffeurPhoto(Long id, MultipartFile file) {
+        ChauffeurEntity chauffeur = chauffeur(id);
+        chauffeur.setPhoto(photoFactory.from(file));
+        return chauffeurRepository.save(chauffeur);
+    }
+
+    @Transactional
+    public ChauffeurEntity removeChauffeurPhoto(Long id) {
+        ChauffeurEntity chauffeur = chauffeur(id);
+        chauffeur.setPhoto(null);
+        return chauffeurRepository.save(chauffeur);
+    }
+
+    @Transactional(readOnly = true)
+    public PhotoEntity chauffeurPhoto(Long id) {
+        return requirePhoto(chauffeur(id).getPhoto(), "Ce chauffeur n'a pas de photo");
+    }
+
+    @Transactional
+    public VehiculeEntity setVehiculePhoto(Long id, MultipartFile file) {
+        VehiculeEntity vehicule = vehicule(id);
+        vehicule.setPhoto(photoFactory.from(file));
+        return vehiculeRepository.save(vehicule);
+    }
+
+    @Transactional
+    public VehiculeEntity removeVehiculePhoto(Long id) {
+        VehiculeEntity vehicule = vehicule(id);
+        vehicule.setPhoto(null);
+        return vehiculeRepository.save(vehicule);
+    }
+
+    @Transactional(readOnly = true)
+    public PhotoEntity vehiculePhoto(Long id) {
+        return requirePhoto(vehicule(id).getPhoto(), "Ce véhicule n'a pas de photo");
+    }
+
+    private static PhotoEntity requirePhoto(PhotoEntity photo, String message) {
+        if (photo == null) {
+            throw new ResourceNotFoundException(message);
+        }
+        // Force le chargement des octets tant que la transaction est ouverte.
+        photo.getData();
+        return photo;
     }
 
     private ChauffeurEntity chauffeur(Long id) {

@@ -6,7 +6,9 @@ import fr.uga.miage.l3.mappers.ChauffeurMapper;
 import fr.uga.miage.l3.request.ChauffeurRequest;
 import fr.uga.miage.l3.responses.ChauffeurDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -35,5 +37,20 @@ public class ChauffeurController implements ChauffeurEndpoints {
     @Override
     public void deleteChauffeur(Long id) {
         equipeComponent.deleteChauffeur(id);
+    }
+
+    @Override
+    public ChauffeurDTO uploadChauffeurPhoto(Long id, MultipartFile photo) {
+        return chauffeurMapper.toDto(equipeComponent.setChauffeurPhoto(id, photo));
+    }
+
+    @Override
+    public ResponseEntity<byte[]> getChauffeurPhoto(Long id) {
+        return PhotoResponses.of(equipeComponent.chauffeurPhoto(id));
+    }
+
+    @Override
+    public ChauffeurDTO deleteChauffeurPhoto(Long id) {
+        return chauffeurMapper.toDto(equipeComponent.removeChauffeurPhoto(id));
     }
 }

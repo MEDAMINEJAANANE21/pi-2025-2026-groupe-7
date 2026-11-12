@@ -31,6 +31,11 @@ export class ApiClient {
     return schema.parse(await firstValueFrom(this.http.patch<unknown>(url(path), body)));
   }
 
+  /** DELETE qui renvoie la ressource mise à jour (ex. après retrait d'une photo). */
+  async deleteFor<T>(path: string, schema: z.ZodType<T>): Promise<T> {
+    return schema.parse(await firstValueFrom(this.http.delete<unknown>(url(path))));
+  }
+
   async delete(path: string): Promise<void> {
     await firstValueFrom(this.http.delete(url(path)));
   }
