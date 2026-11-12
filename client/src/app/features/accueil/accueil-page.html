@@ -1,0 +1,83 @@
+<header class="topbar">
+  <a class="brand" routerLink="/">
+    <span class="mark" aria-hidden="true"><span></span><i></i><b></b></span>
+    CyberCommandes
+  </a>
+  <nav aria-label="Sections">
+    <a href="#fonctionnement">Fonctionnement</a>
+    <a href="#fonctionnalites">Fonctionnalités</a>
+    <a class="btn small" routerLink="/calendrier">Ouvrir l'application</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-text">
+      <h1>Les tournées du jour, prêtes avant le premier départ</h1>
+      <p class="lead">
+        CyberCommandes répartit les livraisons entre vos véhicules, compare plusieurs plans de tournée
+        et imprime la feuille de route de chaque chauffeur.
+      </p>
+      <div class="cta">
+        <a class="btn primary large" [routerLink]="todayLink">Préparer la journée <app-icon name="arrow-right" /></a>
+        <a class="btn large" routerLink="/calendrier">Voir le calendrier</a>
+      </div>
+      @if (backlog(); as count) {
+        <p class="backlog"><span class="dot"></span>{{ count }} livraison{{ count > 1 ? 's' : '' }} en attente de planification</p>
+      } @else if (backlog() === 0) {
+        <p class="backlog muted">Aucune livraison en attente : chargez le jeu d'essai depuis la page Livraisons</p>
+      }
+    </div>
+    <app-route-illustration class="hero-visual" />
+  </section>
+
+  <section id="fonctionnement" class="section">
+    <div class="section-head">
+      <h2>Une journée en quatre étapes</h2>
+      <p class="secondary">De la commande du client à la tournée livrée, au même endroit.</p>
+    </div>
+    <ol class="steps">
+      @for (step of steps; track step.title; let i = $index) {
+        <li>
+          <span class="step-number mono">{{ i + 1 }}</span>
+          <h3>{{ step.title }}</h3>
+          <p class="secondary">{{ step.text }}</p>
+        </li>
+      }
+    </ol>
+  </section>
+
+  <section id="fonctionnalites" class="section">
+    <div class="section-head">
+      <h2>Ce que l'application fait pour vous</h2>
+      <p class="secondary">Pensée pour un planificateur d'entrepôt qui prépare chaque matin les tournées de sa flotte.</p>
+    </div>
+    <ul class="features">
+      @for (feature of features; track feature.title) {
+        <li>
+          <span class="feature-icon"><app-icon [name]="feature.icon" [size]="18" /></span>
+          <div>
+            <h3>{{ feature.title }}</h3>
+            <p class="secondary">{{ feature.text }}</p>
+          </div>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <section class="closing">
+    <div>
+      <h2>Prêt pour la journée de demain</h2>
+      <p class="secondary">Chargez le jeu d'essai et lancez votre première optimisation en moins d'une minute.</p>
+    </div>
+    <a class="btn primary large" routerLink="/livraisons">Commencer <app-icon name="arrow-right" /></a>
+  </section>
+</main>
+
+<footer class="footer">
+  <span>Projet intégrateur · MIAGE, Université Grenoble Alpes</span>
+  <div class="links">
+    <a href="/swagger-ui/index.html" target="_blank" rel="noopener">Documentation de l'API</a>
+    <a href="https://github.com/MEDAMINEJAANANE21/pi-2025-2026-groupe-7" target="_blank" rel="noopener">Code source</a>
+  </div>
+</footer>

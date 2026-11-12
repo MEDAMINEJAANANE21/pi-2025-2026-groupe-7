@@ -10,6 +10,11 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
+    title: 'CyberCommandes · planification des tournées de livraison',
+    loadComponent: () => import('./features/accueil/accueil-page').then((m) => m.AccueilPage),
+  },
+  {
+    path: 'calendrier',
     title: 'Calendrier · CyberCommandes',
     loadComponent: () => import('./features/calendrier/calendrier-page').then((m) => m.CalendrierPage),
   },
@@ -41,6 +46,6 @@ export const routes: Routes = [
   },
   // Anciennes adresses de la première version, gardées pour les favoris existants.
   { path: 'journee/:date', redirectTo: 'journees/:date' },
-  { path: 'journee', redirectTo: '' },
+  { path: 'journee', redirectTo: 'calendrier' },
   { path: '**', redirectTo: '' },
 ];

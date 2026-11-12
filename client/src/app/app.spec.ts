@@ -1,22 +1,41 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideZonelessChangeDetection } from '@angular/core';
+import { Component, provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { App } from './app';
+
+@Component({ template: '' })
+class Empty {}
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideZonelessChangeDetection(), provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideZonelessChangeDetection(),
+        provideRouter([{ path: '', component: Empty }, { path: 'calendrier', component: Empty }]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+      ],
     }).compileComponents();
   });
 
-  it('affiche la navigation principale', async () => {
+  async function renderAt(url: string): Promise<HTMLElement> {
     const fixture = TestBed.createComponent(App);
+    await TestBed.inject(Router).navigateByUrl(url);
     await fixture.whenStable();
-    const links = [...fixture.nativeElement.querySelectorAll('nav a')].map((a: Element) => a.textContent?.trim());
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  it('affiche la navigation principale dans l’application', async () => {
+    const element = await renderAt('/calendrier');
+    const links = [...element.querySelectorAll('nav a')].map((a) => a.textContent?.trim());
     expect(links).toEqual(['Calendrier', "Aujourd'hui", 'Livraisons', 'Équipe']);
+  });
+
+  it('présente la page d’accueil sans la barre latérale', async () => {
+    const element = await renderAt('/');
+    expect(element.querySelector('aside.sidebar')).toBeNull();
   });
 });

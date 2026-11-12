@@ -12,6 +12,7 @@ public class RedirectController {
 
     @GetMapping({
         "/",
+        "/calendrier",
         "/journees/**",
         "/journee/**",
         "/solutions/**",

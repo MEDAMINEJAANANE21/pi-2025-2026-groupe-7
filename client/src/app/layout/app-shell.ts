@@ -19,6 +19,7 @@ interface NavItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterOutlet, RouterLink, RouterLinkActive, Icon, NotificationsHost, ConfirmHost],
   template: `
+    @if (!landing()) {
     <aside class="sidebar no-print" [class.open]="menuOpen()">
       <a class="brand" routerLink="/" (click)="menuOpen.set(false)">
         <span class="mark" aria-hidden="true"><span></span><i></i><b></b></span>
@@ -44,9 +45,13 @@ interface NavItem {
       </div>
     </aside>
 
+    }
+
+    @if (!landing()) {
     <button class="btn icon-only menu-toggle no-print" type="button" aria-label="Menu" (click)="menuOpen.set(!menuOpen())">
       <app-icon [name]="menuOpen() ? 'x' : 'route'" />
     </button>
+    }
 
     <main>
       <router-outlet />
@@ -56,19 +61,25 @@ interface NavItem {
     <app-confirm />
   `,
   styleUrl: './app-shell.scss',
+  host: { '[class.landing]': 'landing()' },
 })
 export class AppShell {
   protected readonly menuOpen = signal(false);
 
   // Le lien « Aujourd'hui » suit la date courante, même si l'onglet reste ouvert la nuit.
+  private readonly router = inject(Router);
   private readonly url = toSignal(
-    inject(Router).events.pipe(filter((e) => e instanceof NavigationEnd), map((e) => e.urlAfterRedirects)),
+    this.router.events.pipe(filter((e) => e instanceof NavigationEnd), map((e) => e.urlAfterRedirects)),
+    { initialValue: this.router.url },
   );
+
+  /** La page d'accueil se présente seule, sans la barre de navigation de l'application. */
+  protected readonly landing = computed(() => (this.url() ?? '/').split(/[?#]/)[0] === '/');
 
   protected readonly nav = computed<NavItem[]>(() => {
     this.url();
     return [
-      { label: 'Calendrier', icon: 'calendar', link: '/', exact: true },
+      { label: 'Calendrier', icon: 'calendar', link: '/calendrier', exact: true },
       { label: "Aujourd'hui", icon: 'route', link: `/journees/${today()}`, exact: false },
       { label: 'Livraisons', icon: 'package', link: '/livraisons', exact: false },
       { label: 'Équipe', icon: 'users', link: '/equipe', exact: false },
