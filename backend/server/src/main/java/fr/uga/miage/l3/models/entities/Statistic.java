@@ -20,5 +20,4 @@ public class Statistic {
   private Long distance;
   private Duration tempsTrajet;
   private Duration tempsMontage;
-  // TODO: verify if additional metrics are needed
 }

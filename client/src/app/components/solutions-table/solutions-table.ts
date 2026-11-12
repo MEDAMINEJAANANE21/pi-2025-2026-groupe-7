@@ -5,33 +5,33 @@ import { TuiTable } from '@taiga-ui/addon-table';
 import { ValueDurationComponent } from '../value-duration/value-duration';
 import { ValueDistanceComponent } from '../value-distance/value-distance';
 import { ValueFuelComponent } from '../value-fuel/value-fuel';
-import { ValueWeightComponent } from '../value-weight/value-weight';
 import { SolutionStatisticsResponse } from '../../models/backend';
+import { formatNumber } from '../../utils/format';
 
- type SortableColumn =
-   | 'nbVehicules'
-   | 'nbLivraisonsTotal'
-   | 'nbLivraisonsMin'
-   | 'nbLivraisonsMax'
-   | 'nbLivraisonsMoyenne'
-   | 'distanceTotal'
-   | 'distanceMin'
-   | 'distanceMax'
-   | 'distanceMoyenne'
-   | 'carburantTotal'
-   | 'carburantMin'
-   | 'carburantMax'
-   | 'carburantMoyenne'
-   | 'tempsTotal'
-   | 'tempsTotalMin'
-   | 'tempsTotalMax'
-   | 'tempsTotalMoyenne';
+type SortableColumn =
+  | 'nbVehicules'
+  | 'nbLivraisonsTotal'
+  | 'nbLivraisonsMin'
+  | 'nbLivraisonsMax'
+  | 'nbLivraisonsMoyenne'
+  | 'distanceTotal'
+  | 'distanceMin'
+  | 'distanceMax'
+  | 'distanceMoyenne'
+  | 'carburantTotal'
+  | 'carburantMin'
+  | 'carburantMax'
+  | 'carburantMoyenne'
+  | 'tempsTotal'
+  | 'tempsTotalMin'
+  | 'tempsTotalMax'
+  | 'tempsTotalMoyenne';
 
 @Component({
   selector: 'app-solutions-table',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, TuiTable, TuiButton, TuiSurface, ValueDurationComponent, ValueDistanceComponent, ValueFuelComponent, ValueWeightComponent],
+  imports: [RouterLink, TuiTable, TuiButton, TuiSurface, ValueDurationComponent, ValueDistanceComponent, ValueFuelComponent],
   templateUrl: './solutions-table.html',
   styleUrl: './solutions-table.scss',
 })
@@ -74,10 +74,7 @@ export class SolutionsTableComponent {
     }
   }
 
-  protected formatNumber(value: number | null | undefined): string {
-    if (value === null || value === undefined) return '—';
-    return value % 1 === 0 ? value.toString() : value.toFixed(1);
-  }
+  protected readonly formatNumber = formatNumber;
 
   protected formatDuration(value: string | null | undefined): string {
     return value ?? '—';

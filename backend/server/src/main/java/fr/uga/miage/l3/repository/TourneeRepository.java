@@ -6,5 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TourneeRepository extends JpaRepository<TourneeEntity,Long> {
-  // TODO: Methodes
 }
