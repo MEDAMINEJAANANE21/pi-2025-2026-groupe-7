@@ -15,6 +15,10 @@
         </tui-textfield>
     </div>
 
-
-    <button tuiButton appearance="accent" class="input-card-bottom" size="s" type="submit">Optimiser les trajets</button>
+    @if (!hasLivraisons()) {
+        <p tuiLabel="s" class="no-livraison">Aucune livraison visible à optimiser.</p>
+    }
+    <button tuiButton appearance="accent" class="input-card-bottom" size="s" type="submit" [disabled]="!hasLivraisons()">
+        Optimiser les trajets
+    </button>
 </form>

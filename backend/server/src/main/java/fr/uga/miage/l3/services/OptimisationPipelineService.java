@@ -137,13 +137,9 @@ public class OptimisationPipelineService {
         JourneeEntity journee = journeeRepository.findById(date)
             .orElseThrow(() -> new NotFoundElementRestException("Journee not found for date: " + date));
 
-        List<LivraisonEntity> livraisons = livraisonRepository.findAllByLivree(false);
-
-        if (livraisonIds != null && !livraisonIds.isEmpty()) {
-            livraisons = livraisons.stream()
-                .filter(l -> livraisonIds.contains(l.getId()))
-                .toList();
-        }
+        List<LivraisonEntity> livraisons = livraisonRepository.findAllByLivree(false).stream()
+            .filter(l -> livraisonIds.contains(l.getId()))
+            .toList();
 
         if (livraisons.isEmpty()) {
             throw new BadRequestRestException("No livraisons available to optimize");

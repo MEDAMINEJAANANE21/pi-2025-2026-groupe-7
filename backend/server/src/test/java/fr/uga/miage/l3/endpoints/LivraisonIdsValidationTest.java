@@ -122,6 +122,25 @@ public class LivraisonIdsValidationTest {
     }
 
     /**
+     * An empty list used to silently fall back to "every undelivered livraison",
+     * which is the opposite of what a user hiding every livraison expects.
+     */
+    @Test
+    void shouldReturn400_whenLivraisonIdsEmpty() {
+        // language=JSON
+        String bodyWithEmptyLivraisonIds = """
+            { "nbVehicules": 2, "maxTempsParVehicule": "PT2H", "livraisonIds": [] }
+            """;
+
+        webClient.post()
+                .uri("/api/journees/" + DATE + "/optimization")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(bodyWithEmptyLivraisonIds)
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
+
+    /**
      * Happy path: body contains valid {@code livraisonIds}. The endpoint must accept the
      * request (HTTP 202) and every persisted {@link SolutionEntity} must store exactly the
      * requested {@code livraisonIds} in its {@code livraisonsIds} column.
