@@ -10,7 +10,7 @@ import { cityLine, streetLine } from '../../core/util/labels';
 import { Confirm } from '../../shared/confirm';
 import { Icon } from '../../shared/icon';
 import { Notifications } from '../../shared/notifications';
-import { DonneesDialog } from './donnees-dialog';
+import { DemoDialog } from '../../shared/demo-dialog';
 import { LivraisonForm } from './livraison-form';
 
 type StatutFilter = 'a-livrer' | 'livrees' | 'toutes';
@@ -20,7 +20,7 @@ const LIVREE_PARAM: Record<StatutFilter, boolean | null> = { 'a-livrer': false, 
 @Component({
   selector: 'app-livraisons-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, Icon, LivraisonForm, DonneesDialog],
+  imports: [FormsModule, Icon, LivraisonForm, DemoDialog],
   templateUrl: './livraisons-page.html',
   styleUrl: './livraisons-page.scss',
 })
@@ -30,7 +30,7 @@ export class LivraisonsPage {
   private readonly confirm = inject(Confirm);
 
   protected readonly form = viewChild.required(LivraisonForm);
-  protected readonly donnees = viewChild.required(DonneesDialog);
+  protected readonly demo = viewChild.required(DemoDialog);
 
   protected readonly statut = signal<StatutFilter>('a-livrer');
   protected readonly search = signal('');

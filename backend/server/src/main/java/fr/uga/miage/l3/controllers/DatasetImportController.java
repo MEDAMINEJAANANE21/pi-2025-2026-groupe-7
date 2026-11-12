@@ -7,7 +7,9 @@ import fr.uga.miage.l3.mappers.DatasetImportMapper;
 import fr.uga.miage.l3.request.DatasetImportRequest;
 import fr.uga.miage.l3.request.RandomLivraisonsGenerationRequest;
 import fr.uga.miage.l3.responses.DatasetImportResponseDTO;
+import fr.uga.miage.l3.responses.DemoDataResponseDTO;
 import fr.uga.miage.l3.responses.RandomGenerationResponseDTO;
+import fr.uga.miage.l3.services.DemoDataService;
 import fr.uga.miage.l3.services.RandomDataGenerationService;
 import fr.uga.miage.l3.services.core.DatasetImportService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class DatasetImportController implements DatasetImportEndpoints {
   private final DatasetImportService datasetImportService;
   private final DatasetImportMapper datasetImportMapper;
   private final RandomDataGenerationService randomDataGenerationService;
+  private final DemoDataService demoDataService;
 
   @Override
   public Set<String> listAvailableDatasets() {
@@ -73,5 +76,11 @@ public class DatasetImportController implements DatasetImportEndpoints {
       throw new InvalidRequestException("count doit etre un entier strictement positif");
     }
     return count;
+  }
+
+  @Override
+  public DemoDataResponseDTO loadDemo() {
+    DemoDataService.Summary summary = demoDataService.load();
+    return new DemoDataResponseDTO(summary.livraisons(), summary.chauffeurs(), summary.vehicules());
   }
 }

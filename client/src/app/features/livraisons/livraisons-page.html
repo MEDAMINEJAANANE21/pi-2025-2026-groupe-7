@@ -5,7 +5,7 @@
       <p class="page-meta">Commandes à livrer chez les clients, et historique des livraisons faites</p>
     </div>
     <div class="actions">
-      <button class="btn" type="button" (click)="donnees().open()"><app-icon name="database" /> Données d'essai</button>
+      <button class="btn" type="button" (click)="demo().open()"><app-icon name="database" /> Jeu d'essai</button>
       <button class="btn primary" type="button" (click)="form().open()"><app-icon name="plus" /> Nouvelle livraison</button>
     </div>
   </header>
@@ -80,7 +80,7 @@
         <h3>{{ search() ? 'Aucun résultat' : 'Aucune livraison' }}</h3>
         <p>{{ search() ? 'Essayez une autre rue ou une autre ville.' : 'Créez une livraison ou chargez un jeu d’essai pour démarrer.' }}</p>
         @if (!search()) {
-          <button class="btn primary" type="button" (click)="donnees().open()"><app-icon name="database" /> Charger un jeu d'essai</button>
+          <button class="btn primary" type="button" (click)="demo().open()"><app-icon name="database" /> Charger le jeu d'essai</button>
         }
       </div>
     }
@@ -88,4 +88,4 @@
 </div>
 
 <app-livraison-form (saved)="reload()" />
-<app-donnees-dialog (changed)="reload()" />
+<app-demo-dialog (loaded)="reload()" />

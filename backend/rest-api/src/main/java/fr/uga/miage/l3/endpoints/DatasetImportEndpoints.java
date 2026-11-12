@@ -4,6 +4,7 @@ import fr.uga.miage.l3.errors.ErrorDTO;
 import fr.uga.miage.l3.request.DatasetImportRequest;
 import fr.uga.miage.l3.request.RandomLivraisonsGenerationRequest;
 import fr.uga.miage.l3.responses.DatasetImportResponseDTO;
+import fr.uga.miage.l3.responses.DemoDataResponseDTO;
 import fr.uga.miage.l3.responses.RandomGenerationResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -50,4 +51,10 @@ public interface DatasetImportEndpoints {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/generate/livraisons")
     RandomGenerationResponseDTO generateRandomLivraisons(@RequestBody RandomLivraisonsGenerationRequest request);
+
+    @Operation(summary = "Charge le jeu d'essai complet",
+        description = "Dépôt, livraisons autour de Grenoble, chauffeurs et véhicules. Remplace toutes les données existantes.")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping("/demo")
+    DemoDataResponseDTO loadDemo();
 }

@@ -1,0 +1,7 @@
+prenom,nom,tauxHoraire,actif
+Léa,Martin,22.5,true
+Karim,Benali,,true
+Sophie,Garnier,24.0,true
+Thomas,Roux,21.0,true
+Inès,Haddad,23.0,true
+Julien,Faure,,false
